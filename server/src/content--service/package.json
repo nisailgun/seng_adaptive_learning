@@ -1,0 +1,17 @@
+{
+  "name": "content-service",
+  "version": "1.0.0",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.0",
+    "mongoose": "^8.0.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  }
+}

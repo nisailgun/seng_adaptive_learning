@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                    Int                @id @default(autoincrement())
+  username              String             @unique
+  password              String
+  theta                 Float              @default(0.0)
+  responses             Response[]
+  inAppNotifications    InAppNotification[]
+  supportTickets        SupportTicket[]
+  notificationPreferences NotificationPreference?
+}
+
+model Question {
+  id              Int       @id @default(autoincrement())
+  text            String
+  answer          String
+  difficulty      Float     @default(0.0)
+  discrimination  Float     @default(1.0)
+  responses       Response[]
+}
+
+model Response {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  questionId  Int
+  correct     Boolean
+  timestamp   DateTime @default(now())
+  nextReview  DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+  question    Question @relation(fields: [questionId], references: [id])
+}
+
+// FR17: In-App Notification Tablosu
+// Kullanıcıya uygulama içi bildirimler göstermek için
+model InAppNotification {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  type        String   // "alert", "milestone", "reminder", "system"
+  title       String
+  message     String
+  isRead      Boolean  @default(false)
+  timestamp   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, isRead])
+}
+
+// UC16: Notification Preferences (Email/Push/In-App tercih sistemi)
+model NotificationPreference {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  emailEnabled    Boolean  @default(true)
+  pushEnabled     Boolean  @default(false)
+  inAppEnabled    Boolean  @default(true)
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// FR23: Support Ticket Tablosu
+// Öğrencilerin destek talepleri için
+model SupportTicket {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  subject     String
+  message     String
+  status      String   @default("open") // "open", "in_progress", "resolved", "closed"
+  priority    String   @default("normal") // "low", "normal", "high", "urgent"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, status])
+}

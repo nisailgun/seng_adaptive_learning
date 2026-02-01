@@ -1,0 +1,33 @@
+{
+  "name": "english",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace server\" \"npm run dev --workspace client\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pakhlavonKh/adaptive-english-learning.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pakhlavonKh/adaptive-english-learning/issues"
+  },
+  "homepage": "https://github.com/pakhlavonKh/adaptive-english-learning#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.2.1",
+    "mongoose": "^9.0.2",
+    "pdfkit": "^0.17.2"
+  }
+}

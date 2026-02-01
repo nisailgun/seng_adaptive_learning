@@ -1,0 +1,35 @@
+{
+  "name": "adaptive-server",
+  "type": "module",
+  "scripts": {
+    "dev": "node src/index.js",
+    "start": "node src/index.js",
+    "build": "tsc",
+    "seed": "node scripts/seed-comprehensive.js",
+    "seed:quick": "node scripts/seed-db.js",
+    "seed:free-text": "node scripts/seed-free-text.js",
+    "seed:audio": "node scripts/add-audio-to-listening.js",
+    "content:stats": "node scripts/view-content-stats.js",
+    "clear:old": "node scripts/clear-old-questions.js",
+    "reset": "node scripts/reset-database.js",
+    "debug:db": "node scripts/debug-db.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.18.2",
+    "google-tts-api": "^2.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.6.0"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.17",
+    "@types/jsonwebtoken": "^9.0.6",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.5"
+  }
+}

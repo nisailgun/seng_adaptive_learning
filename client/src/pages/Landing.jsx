@@ -65,7 +65,7 @@ export default function Landing() {
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <strong style={{ fontSize: 20 }}>📘 Adaptive Lerner</strong>
+          <strong style={{ fontSize: 20 }}>📘 Adaptive Learner</strong>
           <button
             onClick={() => navigate('/login')}
             style={{

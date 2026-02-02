@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login, loginWithGoogle } from '../api';
-import { Mail, Lock, ArrowRight, ChevronLeft } from 'lucide-react';
+import { ArrowRight, ChevronLeft } from 'lucide-react';
 
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
@@ -17,124 +17,219 @@ export default function Login({ onLogin }) {
       const res = await login(username, password);
       onLogin(res.token, res.user);
       navigate('/dashboard');
-    } catch(e) {
-      setErr(e.response?.data?.error || 'Login failed');
+    } catch (e) {
+      setErr(e.response?.data?.error || 'Authentication failed');
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      // In production, use Google OAuth SDK to get token
-      // const googleToken = await getGoogleOAuthToken();
-      
-      // For demo, simulate OAuth token
       const demoToken = 'demo-google-token-' + Date.now();
       const res = await loginWithGoogle(demoToken);
-      
       if (res.success) {
         onLogin(res.token, res.user);
         navigate('/dashboard');
       } else {
-        setErr(res.error || 'Google login failed');
+        setErr(res.error || 'Google authentication failed');
       }
-    } catch(e) {
-      setErr(e.response?.data?.error || 'Google login failed');
+    } catch {
+      setErr('Google authentication failed');
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <>
-    <div className="auth-container">
-      <div className="auth-background">
-        <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80" alt="background" />
-      </div>
-      <form onSubmit={submit} className="auth-card">
-        <button type="button" className="back-button" onClick={() => navigate('/')}>
-          <ChevronLeft size={20} />
-          Back
+    <div style={styles.page}>
+      <div style={styles.background} />
+
+      <form onSubmit={submit} style={styles.card}>
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          style={styles.back}
+        >
+          <ChevronLeft size={18} />
+          Home
         </button>
-        <div className="auth-header">
-          <h2>Welcome Back</h2>
-          <p>Sign in to your learning journey</p>
-        </div>
-        
-        {err && <div className="error-alert">{err}</div>}
-        
-        <div className="form-group">
-          <label>Email or Username</label>
-          <div className="input-wrapper">
-            <input 
-              type="text"
-              placeholder="Enter your username" 
-              value={username} 
-              onChange={e=>setUsername(e.target.value)}
-              required
-            />
-          </div>
-        </div>
 
-        <div className="form-group">
-          <label>Password</label>
-          <div className="input-wrapper">
-            <input 
-              type="password"
-              placeholder="Enter your password" 
-              value={password} 
-              onChange={e=>setPassword(e.target.value)}
-              required
-            />
-          </div>
-        </div>
+        <h2 style={styles.title}>Welcome Back</h2>
+        <p style={styles.subtitle}>Continue your English journey</p>
 
-        <div className="auth-divider">
-          <span>or continue with</span>
-        </div>
+        {err && <div style={styles.error}>{err}</div>}
 
-        <button 
-          type="button" 
-          className="oauth-button google"
+        <input
+          style={styles.input}
+          placeholder="Username or Email"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+
+        <input
+          style={styles.input}
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+
+        <button
+          type="button"
           onClick={handleGoogleLogin}
           disabled={loading}
+          style={styles.google}
         >
-          <svg viewBox="0 0 24 24" width="20" height="20">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-          </svg>
-          Sign in with Google
+          <img
+            alt="google"
+            src="https://www.svgrepo.com/show/475656/google-color.svg"
+            style={{ width: 18, marginRight: 8 }}
+          />
+          Continue with Google
         </button>
 
-        <div className="auth-divider">
-          <span/>
-        </div>
-
-        <button type="submit" className="auth-button" disabled={loading}>
-          {loading ? 'Signing in...' : 'Sign In'}
-          {!loading && <ArrowRight size={20} />}
+        <button
+          type="submit"
+          disabled={loading}
+          style={styles.primary}
+        >
+          {loading ? 'Signing in…' : 'Sign In'}
+          {!loading && <ArrowRight size={18} />}
         </button>
 
-        <div className="auth-divider">
-          <span>New to Adaptive English?</span>
-        </div>
-
-        <p className="auth-switch">
-          <button 
-            type="button" 
-            className="link-button-auth" 
+        <p style={styles.footerText}>
+          New here?{' '}
+          <span
             onClick={() => navigate('/register')}
+            style={styles.link}
           >
             Create an account
-          </button>
+          </span>
         </p>
       </form>
     </div>
-    </>
   );
 }
 
+/* ================= INLINE THEME ================= */
+
+const styles = {
+  page: {
+    minHeight: '100vh',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+    fontFamily: 'Segoe UI, sans-serif'
+  },
+
+  background: {
+    position: 'absolute',
+    inset: 0,
+    backgroundImage:
+      'url(https://images.unsplash.com/photo-1523580846011-d3a5bc25702b)',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    opacity: 0.15
+  },
+
+  card: {
+    position: 'relative',
+    width: 360,
+    padding: 32,
+    borderRadius: 18,
+    background: 'rgba(255,255,255,0.95)',
+    boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 14
+  },
+
+  back: {
+    background: 'none',
+    border: 'none',
+    color: '#667eea',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    cursor: 'pointer',
+    fontWeight: 600
+  },
+
+  title: {
+    margin: '10px 0 0',
+    fontSize: 24,
+    fontWeight: 700,
+    textAlign: 'center'
+  },
+
+  subtitle: {
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#555',
+    marginBottom: 10
+  },
+
+  input: {
+    padding: '12px 14px',
+    borderRadius: 10,
+    border: '1px solid #ddd',
+    fontSize: 14,
+    outline: 'none'
+  },
+
+  primary: {
+    marginTop: 10,
+    padding: '12px',
+    borderRadius: 12,
+    border: 'none',
+    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: 600,
+    cursor: 'pointer',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8
+  },
+
+  google: {
+    marginTop: 6,
+    padding: '10px',
+    borderRadius: 12,
+    border: '1px solid #ddd',
+    background: '#fff',
+    cursor: 'pointer',
+    fontWeight: 500,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+
+  error: {
+    background: '#fee2e2',
+    color: '#991b1b',
+    padding: 10,
+    borderRadius: 8,
+    fontSize: 13,
+    textAlign: 'center'
+  },
+
+  footerText: {
+    textAlign: 'center',
+    fontSize: 13,
+    marginTop: 8
+  },
+
+  link: {
+    color: '#667eea',
+    fontWeight: 600,
+    cursor: 'pointer'
+  }
+};

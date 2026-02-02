@@ -1,272 +1,202 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Target, BookOpen, BarChart2, Zap, Globe2, Trophy } from 'lucide-react';
-// SVG illustrations (inline for demo)
-const HeroSVG = () => (
-  <svg width="240" height="80" viewBox="0 0 240 80" fill="none" xmlns="http://www.w3.org/2000/svg" style={{marginBottom: 20}}>
-    <text x="120" y="50" textAnchor="middle" fontSize="20" fill="white" fontFamily="Segoe UI" fontWeight="600">Learn English</text>
-  </svg>
-);
+import {
+  Target,
+  BookOpen,
+  BarChart2,
+  Zap,
+  Globe2,
+  Trophy
+} from 'lucide-react';
 
-const FeatureSVG = () => (
-  <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="40" cy="40" r="36" fill="#f9fafb" stroke="#667eea" strokeWidth="4" />
-    <path d="M40 20v40M20 40h40" stroke="#667eea" strokeWidth="4" strokeLinecap="round" />
-  </svg>
-);
+/* ---------- THEME ---------- */
+const theme = {
+  bg: '#020617',
+  panel: '#020617',
+  glass: 'rgba(255,255,255,0.06)',
+  border: 'rgba(255,255,255,0.08)',
+  text: '#e5e7eb',
+  muted: '#9ca3af',
+  primary: '#6366f1'
+};
 
-const testimonials = [
-  {
-    name: 'Sarah Johnson',
-    role: 'Student',
-    feedback: 'This platform transformed my English learning. The adaptive questions are perfectly calibrated to my level!',
-    avatar: '👩‍🎓'
-  },
-  {
-    name: 'Miguel Rodriguez',
-    role: 'Professional',
-    feedback: 'I improved my business English significantly in just 3 months. Highly recommended for professionals!',
-    avatar: '👨‍💼'
-  },
-  {
-    name: 'Yuki Tanaka',
-    role: 'Language Enthusiast',
-    feedback: 'The spaced repetition system really works. I\'ve never retained vocabulary so well before!',
-    avatar: '👩‍🏫'
-  },
-  {
-    name: 'Ahmed Hassan',
-    role: 'Teacher',
-    feedback: 'I recommend this to all my students. The personalized learning path keeps them engaged.',
-    avatar: '👨‍🏫'
-  }
+/* ---------- DATA ---------- */
+const slides = [
+  { title: 'Learn at Your Own Pace', sub: 'Adaptive questions that evolve with you' },
+  { title: 'Build Real Vocabulary', sub: 'Retention-focused spaced repetition' },
+  { title: 'Measure Your Growth', sub: 'Theta-based ability tracking' }
 ];
 
 const features = [
-  {
-    icon: <Target color="#667eea" size={40} />, title: 'Adaptive Learning',
-    description: 'Questions automatically adjust to match your skill level using IRT (Item Response Theory) algorithms.'
-  },
-  {
-    icon: <BookOpen color="#667eea" size={40} />, title: 'Spaced Repetition',
-    description: 'Scientifically-proven spacing algorithm ensures optimal retention of vocabulary and concepts.'
-  },
-  {
-    icon: <BarChart2 color="#667eea" size={40} />, title: 'Progress Tracking',
-    description: 'Monitor your improvement with our theta ability scoring system in real-time.'
-  },
-  {
-    icon: <Zap color="#667eea" size={40} />, title: 'Fast & Efficient',
-    description: 'Learn effectively with short, focused sessions that fit into your busy schedule.'
-  },
-  {
-    icon: <Globe2 color="#667eea" size={40} />, title: 'Globally Curated Content',
-    description: 'Practice with questions covering diverse topics and real-world English usage.'
-  },
-  {
-    icon: <Trophy color="#667eea" size={40} />, title: 'Proven Results',
-    description: 'Join thousands of learners who have achieved their English language goals.'
-  }
+  { icon: <Target />, title: 'Adaptive Learning', desc: 'Difficulty dynamically adjusts to your ability.' },
+  { icon: <BookOpen />, title: 'Spaced Repetition', desc: 'Optimized review cycles for long-term memory.' },
+  { icon: <BarChart2 />, title: 'Ability Tracking', desc: 'Theta score shows real progress.' },
+  { icon: <Zap />, title: 'Fast Sessions', desc: 'Short, focused learning loops.' },
+  { icon: <Globe2 />, title: 'Real Context', desc: 'Questions from real-world usage.' },
+  { icon: <Trophy />, title: 'Proven Results', desc: 'Thousands of successful learners.' }
 ];
 
 export default function Landing() {
   const navigate = useNavigate();
-  const [carouselIndex, setCarouselIndex] = useState(0);
-  const [testimonialIndex, setTestimonialIndex] = useState(0);
+  const [slide, setSlide] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCarouselIndex((i) => (i + 1) % 3);
-    }, 5000);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setSlide(s => (s + 1) % slides.length), 5000);
+    return () => clearInterval(t);
   }, []);
 
-  const carouselSlides = [
-    {
-      title: 'Learn at Your Own Pace',
-      subtitle: 'Adaptive questions that grow with you',
-      gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-    },
-    {
-      title: 'Master English Vocabulary',
-      subtitle: 'Never forget what you\'ve learned',
-      gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
-    },
-    {
-      title: 'Track Your Progress',
-      subtitle: 'See measurable improvement every day',
-      gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
-    }
-  ];
-
-  const nextTestimonial = () => setTestimonialIndex((i) => (i + 1) % testimonials.length);
-  const prevTestimonial = () => setTestimonialIndex((i) => (i - 1 + testimonials.length) % testimonials.length);
-
   return (
-    <div className="landing-page">
-      {/* Header & Navigation */}
-      <header className="header">
-        <div className="header-container">
-          <div className="logo">📖 Adaptive English</div>
-          <nav className="nav">
-            <a href="#features">Features</a>
-            <a href="#testimonials">Testimonials</a>
-            <a href="#about">About</a>
-          </nav>
-          <button className="nav-cta" onClick={() => navigate('/login')}>Sign In</button>
+    <div style={{ background: theme.bg, color: theme.text, minHeight: '100vh' }}>
+
+      {/* HEADER */}
+      <header style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
+        backdropFilter: 'blur(12px)',
+        background: theme.glass,
+        borderBottom: `1px solid ${theme.border}`
+      }}>
+        <div style={{
+          maxWidth: 1200,
+          margin: '0 auto',
+          padding: '18px 24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <strong style={{ fontSize: 20 }}>📘 Adaptive Lerner</strong>
+          <button
+            onClick={() => navigate('/login')}
+            style={{
+              padding: '10px 18px',
+              borderRadius: 10,
+              border: 'none',
+              background: theme.primary,
+              color: 'white',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+          >
+            Sign In
+          </button>
         </div>
       </header>
 
-      {/* Hero Carousel with SVG and photo */}
-      <section className="hero-carousel">
-        <div 
-          className="carousel-slide"
-          style={{ 
-            background: carouselSlides[carouselIndex].gradient
+      {/* HERO */}
+      <section style={{
+        padding: '120px 20px',
+        textAlign: 'center',
+        background: `radial-gradient(circle at top, rgba(99,102,241,0.25), transparent)`
+      }}>
+        <h1 style={{ fontSize: 48, fontWeight: 900 }}>
+          {slides[slide].title}
+        </h1>
+        <p style={{ color: theme.muted, fontSize: 18, marginTop: 12 }}>
+          {slides[slide].sub}
+        </p>
+
+        <button
+          onClick={() => navigate('/login')}
+          style={{
+            marginTop: 32,
+            padding: '16px 34px',
+            borderRadius: 14,
+            border: 'none',
+            background: theme.primary,
+            color: 'white',
+            fontSize: 18,
+            fontWeight: 800,
+            cursor: 'pointer'
           }}
         >
-          {/* Gradient Background */}
-          <div className="landing-carousel-bg" style={{
-            background: carouselSlides[carouselIndex].gradient
-          }}></div>
+          Start Learning
+        </button>
 
-          <div className="carousel-content">
-            <HeroSVG />
-            <h1 className="landing-hero-title">{carouselSlides[carouselIndex].title}</h1>
-            <p className="landing-hero-subtitle">{carouselSlides[carouselIndex].subtitle}</p>
-            <button className="cta-button-large" onClick={() => navigate('/login')}>Start Learning Now</button>
-          </div>
-
-          <div className="carousel-indicator">
-            {carouselSlides.map((_, i) => (
-              <div 
-                key={i}
-                className={`indicator ${i === carouselIndex ? 'active' : ''}`}
-                onClick={() => setCarouselIndex(i)}
-              />
-            ))}
-          </div>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 30 }}>
+          {slides.map((_, i) => (
+            <div
+              key={i}
+              onClick={() => setSlide(i)}
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                background: i === slide ? theme.primary : theme.border,
+                cursor: 'pointer'
+              }}
+            />
+          ))}
         </div>
       </section>
 
-      {/* Features Section with SVG icons */}
-      <section id="features" className="features-section">
-        <div className="section-container">
-          <h2 className="section-title">Why Choose Adaptive English?</h2>
-          <p className="section-subtitle">Leverage cutting-edge AI and learning science</p>
-          <div className="features-grid">
-            {features.map((feature, idx) => (
-              <div key={idx} className="feature-card-large">
-                <div className="feature-icon" style={{marginBottom:8}}>
-                  {feature.icon}
-                </div>
-                <h3>{feature.title}</h3>
-                <p>{feature.description}</p>
+      {/* FEATURES */}
+      <section style={{ padding: '80px 20px' }}>
+        <div style={{
+          maxWidth: 1200,
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))',
+          gap: 24
+        }}>
+          {features.map((f, i) => (
+            <div key={i} style={{
+              background: theme.glass,
+              border: `1px solid ${theme.border}`,
+              borderRadius: 20,
+              padding: 28,
+              backdropFilter: 'blur(12px)'
+            }}>
+              <div style={{ color: theme.primary, marginBottom: 14 }}>
+                {React.cloneElement(f.icon, { size: 36 })}
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="stats-section">
-        <div className="stats-grid">
-          <div className="stat">
-            <h3>10K+</h3>
-            <p>Active Learners</p>
-          </div>
-          <div className="stat">
-            <h3>5K+</h3>
-            <p>Questions</p>
-          </div>
-          <div className="stat">
-            <h3>87%</h3>
-            <p>Success Rate</p>
-          </div>
-          <div className="stat">
-            <h3>30+</h3>
-            <p>Countries</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section with photo avatars */}
-      <section id="testimonials" className="testimonials-section">
-        <div className="section-container">
-          <h2 className="section-title">What Our Learners Say</h2>
-          <p className="section-subtitle">Real stories from real students</p>
-          <div className="testimonial-carousel">
-            <button className="carousel-nav prev" onClick={prevTestimonial}>❮</button>
-            <div className="testimonial-card">
-              <div className="testimonial-avatar">
-                <img 
-                  src={`https://randomuser.me/api/portraits/${testimonialIndex % 2 === 0 ? 'women' : 'men'}/${testimonialIndex + 10}.jpg`} 
-                  alt="avatar" 
-                  className="landing-testimonial-avatar" 
-                />
-              </div>
-              <p className="testimonial-text">"{testimonials[testimonialIndex].feedback}"</p>
-              <h4 className="testimonial-name">{testimonials[testimonialIndex].name}</h4>
-              <p className="testimonial-role">{testimonials[testimonialIndex].role}</p>
+              <h3 style={{ fontSize: 18, fontWeight: 800 }}>{f.title}</h3>
+              <p style={{ color: theme.muted, fontSize: 14, marginTop: 6 }}>
+                {f.desc}
+              </p>
             </div>
-            <button className="carousel-nav next" onClick={nextTestimonial}>❯</button>
-          </div>
-          <div className="testimonial-dots">
-            {testimonials.map((_, i) => (
-              <div
-                key={i}
-                className={`dot ${i === testimonialIndex ? 'active' : ''}`}
-                onClick={() => setTestimonialIndex(i)}
-              />
-            ))}
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="cta-section">
-        <div className="cta-content">
-          <h2>Ready to Transform Your English?</h2>
-          <p>Join thousands of learners achieving their language goals</p>
-          <button className="cta-button-xl" onClick={() => navigate('/login')}>Get Started Free</button>
-        </div>
+      {/* CTA */}
+      <section style={{
+        padding: '100px 20px',
+        textAlign: 'center',
+        background: `linear-gradient(135deg, rgba(99,102,241,0.2), transparent)`
+      }}>
+        <h2 style={{ fontSize: 36, fontWeight: 900 }}>
+          Ready to Level Up Your English?
+        </h2>
+        <p style={{ color: theme.muted, marginTop: 10 }}>
+          Personalized, measurable, effective learning
+        </p>
+        <button
+          onClick={() => navigate('/login')}
+          style={{
+            marginTop: 30,
+            padding: '16px 36px',
+            borderRadius: 14,
+            border: 'none',
+            background: theme.primary,
+            color: 'white',
+            fontWeight: 800,
+            fontSize: 18,
+            cursor: 'pointer'
+          }}
+        >
+          Get Started Free
+        </button>
       </section>
 
-      {/* Footer */}
-      <footer className="footer">
-        <div className="footer-container">
-          <div className="footer-section">
-            <h4>📖 Adaptive English</h4>
-            <p>Learn English smarter, not harder.</p>
-          </div>
-          <div className="footer-section">
-            <h4>Product</h4>
-            <ul>
-              <li><a href="#features">Features</a></li>
-              <li><a href="#pricing">Pricing</a></li>
-              <li><a href="#blog">Blog</a></li>
-            </ul>
-          </div>
-          <div className="footer-section">
-            <h4>Company</h4>
-            <ul>
-              <li><a href="#about">About Us</a></li>
-              <li><a href="#contact">Contact</a></li>
-              <li><a href="#privacy">Privacy</a></li>
-            </ul>
-          </div>
-          <div className="footer-section">
-            <h4>Connect</h4>
-            <ul>
-              <li><a href="#twitter">Twitter</a></li>
-              <li><a href="#facebook">Facebook</a></li>
-              <li><a href="#linkedin">LinkedIn</a></li>
-            </ul>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <p>&copy; 2025 Adaptive English. All rights reserved.</p>
-        </div>
+      {/* FOOTER */}
+      <footer style={{
+        padding: 30,
+        textAlign: 'center',
+        color: theme.muted,
+        borderTop: `1px solid ${theme.border}`
+      }}>
+        © 2025 Adaptive Learner
       </footer>
     </div>
   );

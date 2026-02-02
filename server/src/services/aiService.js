@@ -78,7 +78,7 @@ class AIService {
     this.disabled = !API_KEY;
     if (!this.disabled && genAI) {
       // Preferred model (may be invalid for some API versions)
-      this.modelName = process.env.GENERATIVE_MODEL || 'gemini-1.5-flash';
+      this.modelName = process.env.GENERATIVE_MODEL || 'gemini-3-flash-preview';
       this.model = genAI.getGenerativeModel({ model: this.modelName });
       this._triedFallback = false;
     }

@@ -138,6 +138,11 @@ export const generateConversation = (token, topic, level = 'intermediate') =>
     headers: { Authorization: `Bearer ${token}` }
   }).then((r) => r.data);
 
+  // Resolve / close a support ticket
+export const resolveSupportTicket = (token, ticketId) =>
+  API.put(`/support/tickets/${ticketId}/resolve`, {}, {
+    headers: { Authorization: `Bearer ${token}` }
+  }).then((r) => r.data);
 // Get AI writing correction
 export const correctWriting = (token, text, focusArea = 'general') =>
   API.post('/ai/correct-writing', { text, focusArea }, {

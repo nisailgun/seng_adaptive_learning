@@ -1,56 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  createSupportTicket,
-  getSupportTickets,
-  resolveSupportTicket
-} from "../api";
-import { LogOut, BookOpen, Layers, HelpCircle, User, Inbox } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createSupportTicket, getSupportTickets, resolveSupportTicket } from '../api';
 
-/* ------------------------------------
-   SIDEBAR ITEM
------------------------------------- */
-function NavItem({ icon, label, onClick, danger }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        display: "flex",
-        gap: 12,
-        alignItems: "center",
-        padding: "12px 14px",
-        borderRadius: 10,
-        background: danger
-          ? "rgba(239,68,68,0.15)"
-          : "rgba(255,255,255,0.08)",
-        color: danger ? "#fecaca" : "white",
-        border: "none",
-        cursor: "pointer",
-        fontWeight: 600
-      }}
-    >
-      {icon}
-      {label}
-    </button>
-  );
-}
-
-/* ------------------------------------
-   MAIN COMPONENT
------------------------------------- */
-export default function Support({ token, onLogout }) {
+export default function Support({ token }) {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('new');
 
-  const [activeTab, setActiveTab] = useState("new");
-
-  // FORM STATE
-  const [subject, setSubject] = useState("");
-  const [priority, setPriority] = useState("normal");
-  const [message, setMessage] = useState("");
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const [priority, setPriority] = useState('normal');
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState(null);
 
-  // HISTORY STATE
   const [tickets, setTickets] = useState([]);
   const [loadingTickets, setLoadingTickets] = useState(false);
 
@@ -65,381 +26,235 @@ export default function Support({ token, onLogout }) {
   };
 
   useEffect(() => {
-    if (activeTab === "history") loadTickets();
+    if (activeTab === 'history') loadTickets();
   }, [activeTab]);
 
-  /* ------------------------------------
-     FORM SUBMIT
-  ------------------------------------ */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!subject || !message) {
-      setSubmitMessage({
-        type: "error",
-        text: "Please fill in all required fields."
-      });
+      setSubmitMessage({ type: 'error', text: 'All fields are required.' });
       return;
     }
 
     try {
       setSubmitting(true);
-      const result = await createSupportTicket(
-        token,
-        subject,
-        message,
-        priority
-      );
-
-      setSubmitMessage({
-        type: "success",
-        text: result.message || "Request submitted successfully!"
-      });
-
-      setSubject("");
-      setMessage("");
-      setPriority("normal");
-
-      setTimeout(() => setSubmitMessage(null), 3500);
-    } catch (e) {
-      setSubmitMessage({
-        type: "error",
-        text: "Failed to submit request."
-      });
+      const res = await createSupportTicket(token, subject, message, priority);
+      setSubmitMessage({ type: 'success', text: res.message || 'Request sent successfully.' });
+      setSubject('');
+      setMessage('');
+      setPriority('normal');
+    } catch {
+      setSubmitMessage({ type: 'error', text: 'Something went wrong.' });
     } finally {
       setSubmitting(false);
+      setTimeout(() => setSubmitMessage(null), 4000);
     }
   };
 
-  const statusColor = {
-    open: "#3b82f6",
-    in_progress: "#f59e0b",
-    resolved: "#22c55e",
-    closed: "#9ca3af"
-  };
+  const statusColor = (s) =>
+    s === 'open' ? '#4facfe' :
+    s === 'in_progress' ? '#f59e0b' :
+    s === 'resolved' ? '#22c55e' : '#9ca3af';
 
-  const priorityLabels = {
-    low: "Low",
-    normal: "Normal",
-    high: "High",
-    urgent: "Urgent"
-  };
-
-  /* ------------------------------------
-     MAIN RENDER
-  ------------------------------------ */
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: "#0f172a",
-        color: "white"
-      }}
-    >
-      {/* SIDEBAR */}
-      <aside
-        style={{
-          width: 260,
-          padding: 30,
-          background: "rgba(255,255,255,0.05)",
-          backdropFilter: "blur(12px)",
-          display: "flex",
-          flexDirection: "column",
-          gap: 18
-        }}
-      >
-        <h2 style={{ fontSize: 22, fontWeight: 800 }}>Support</h2>
-
-        <NavItem
-          icon={<BookOpen size={18} />}
-          label="Dashboard"
-          onClick={() => navigate("/dashboard")}
-        />
-
-        <NavItem
-          icon={<Layers size={18} />}
-          label="Learning Path"
-          onClick={() => navigate("/dashboard")}
-        />
-
-        <NavItem
-          icon={<HelpCircle size={18} />}
-          label="Support"
-          onClick={() => {}}
-        />
-
-        <NavItem
-          icon={<User size={18} />}
-          label="Account"
-          onClick={() => navigate("/account")}
-        />
-
-        <div style={{ flex: 1 }} />
-
-        <NavItem
-          icon={<LogOut size={18} />}
-          label="Logout"
-          danger
-          onClick={onLogout}
-        />
-      </aside>
-
-      {/* MAIN CONTENT */}
-      <main style={{ flex: 1, padding: 60, overflowY: "auto" }}>
-        <h1 style={{ fontSize: 34, fontWeight: 900, marginBottom: 10 }}>
-          🎫 Help & Support
-        </h1>
-        <p style={{ opacity: 0.6, marginBottom: 30 }}>
-          Submit requests or review your past support tickets.
-        </p>
-
-        {/* TABS */}
-        <div
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #667eea, #764ba2)',
+      padding: '40px 20px'
+    }}>
+      {/* HEADER */}
+      <div style={{
+        maxWidth: 1100,
+        margin: '0 auto',
+        color: 'white',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 30
+      }}>
+        <h1 style={{ margin: 0 }}>🎫 Support Center</h1>
+        <button
+          onClick={() => navigate('/dashboard')}
           style={{
-            display: "flex",
-            gap: 12,
-            marginBottom: 30
+            background: 'rgba(255,255,255,0.15)',
+            color: 'white',
+            border: 'none',
+            padding: '10px 16px',
+            borderRadius: 10,
+            cursor: 'pointer'
           }}
         >
-          <button
-            style={{
-              ...tabStyle,
-              background:
-                activeTab === "new"
-                  ? "linear-gradient(135deg,#6366f1,#22d3ee)"
-                  : "rgba(255,255,255,0.08)",
-              color: activeTab === "new" ? "#020617" : "white"
-            }}
-            onClick={() => setActiveTab("new")}
-          >
-            📝 Create Request
-          </button>
+          ← Dashboard
+        </button>
+      </div>
 
-          <button
-            style={{
-              ...tabStyle,
-              background:
-                activeTab === "history"
-                  ? "linear-gradient(135deg,#6366f1,#22d3ee)"
-                  : "rgba(255,255,255,0.08)",
-              color: activeTab === "history" ? "#020617" : "white"
-            }}
-            onClick={() => setActiveTab("history")}
-          >
-            📋 My Requests
-          </button>
+      {/* CARD */}
+      <div style={{
+        maxWidth: 1100,
+        margin: '0 auto',
+        background: 'white',
+        borderRadius: 20,
+        padding: 30,
+        boxShadow: '0 20px 40px rgba(0,0,0,0.15)'
+      }}>
+        {/* TABS */}
+        <div style={{ display: 'flex', gap: 12, marginBottom: 30 }}>
+          {['new', 'history'].map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                flex: 1,
+                padding: '14px',
+                borderRadius: 12,
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 600,
+                background: activeTab === tab
+                  ? 'linear-gradient(135deg,#667eea,#764ba2)'
+                  : '#f3f4f6',
+                color: activeTab === tab ? 'white' : '#374151'
+              }}
+            >
+              {tab === 'new' ? '📝 New Request' : '📋 My Requests'}
+            </button>
+          ))}
         </div>
 
-        {/* ------------------------------------
-            NEW SUPPORT REQUEST FORM
-        ------------------------------------ */}
-        {activeTab === "new" && (
-          <div style={cardStyle}>
-            <h2 style={{ marginTop: 0, marginBottom: 10, fontWeight: 800 }}>
-              Create Support Request
-            </h2>
-            <p style={{ opacity: 0.6, marginBottom: 20 }}>
-              Describe your issue below.
-            </p>
-
+        {/* NEW REQUEST */}
+        {activeTab === 'new' && (
+          <form onSubmit={handleSubmit} style={{ maxWidth: 600 }}>
             {submitMessage && (
-              <div
-                style={{
-                  padding: 14,
-                  borderRadius: 10,
-                  marginBottom: 20,
-                  background:
-                    submitMessage.type === "success"
-                      ? "rgba(34,197,94,0.15)"
-                      : "rgba(239,68,68,0.15)"
-                }}
-              >
+              <div style={{
+                marginBottom: 20,
+                padding: 12,
+                borderRadius: 10,
+                background: submitMessage.type === 'success' ? '#dcfce7' : '#fee2e2',
+                color: submitMessage.type === 'success' ? '#166534' : '#991b1b'
+              }}>
                 {submitMessage.text}
               </div>
             )}
 
-            <form onSubmit={handleSubmit}>
-              {/* SUBJECT */}
-              <label style={labelStyle}>Subject *</label>
-              <input
-                style={inputStyle}
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="e.g., Unable to log in"
-              />
+            <label style={label}>Subject</label>
+            <input
+              value={subject}
+              onChange={e => setSubject(e.target.value)}
+              style={input}
+              placeholder="Short summary"
+            />
 
-              {/* PRIORITY */}
-              <label style={labelStyle}>Priority</label>
-              <select
-                style={inputStyle}
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-              >
-                <option value="low">Low</option>
-                <option value="normal">Normal</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
+            <label style={label}>Priority</label>
+            <select
+              value={priority}
+              onChange={e => setPriority(e.target.value)}
+              style={input}
+            >
+              <option value="low">Low</option>
+              <option value="normal">Normal</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
 
-              {/* MESSAGE */}
-              <label style={labelStyle}>Message *</label>
-              <textarea
-                style={{ ...inputStyle, height: 120 }}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Describe the issue in detail..."
-              />
+            <label style={label}>Message</label>
+            <textarea
+              value={message}
+              onChange={e => setMessage(e.target.value)}
+              rows={5}
+              style={{ ...input, resize: 'vertical' }}
+            />
 
-              <button
-                type="submit"
-                disabled={submitting}
-                style={{ ...btnPrimary, marginTop: 20 }}
-              >
-                {submitting ? "Submitting..." : "📤 Submit Request"}
-              </button>
-            </form>
-          </div>
+            <button
+              disabled={submitting}
+              style={{
+                marginTop: 20,
+                width: '100%',
+                padding: 14,
+                borderRadius: 12,
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 600,
+                background: 'linear-gradient(135deg,#4facfe,#00f2fe)',
+                color: 'white'
+              }}
+            >
+              {submitting ? 'Sending...' : 'Submit Request'}
+            </button>
+          </form>
         )}
 
-        {/* ------------------------------------
-            HISTORY VIEW
-        ------------------------------------ */}
-        {activeTab === "history" && (
-          <div style={cardStyle}>
-            <h2 style={{ fontWeight: 800, marginBottom: 20 }}>
-              Your Support Requests
-            </h2>
-
+        {/* HISTORY */}
+        {activeTab === 'history' && (
+          <>
             {loadingTickets ? (
-              <div style={{ opacity: 0.6 }}>Loading…</div>
+              <p>Loading...</p>
             ) : tickets.length === 0 ? (
-              <div
-                style={{
-                  padding: 60,
-                  textAlign: "center",
-                  opacity: 0.5,
-                  fontSize: 18
-                }}
-              >
-                <Inbox size={40} style={{ marginBottom: 10 }} />
-                <p>No previous support tickets found.</p>
-              </div>
+              <p>No support requests yet.</p>
             ) : (
-              tickets.map((t) => (
-                <div
-                  key={t.id}
-                  style={{
-                    marginBottom: 20,
-                    padding: 20,
+              <div style={{ display: 'grid', gap: 16 }}>
+                {tickets.map(t => (
+                  <div key={t.id} style={{
+                    border: '1px solid #e5e7eb',
                     borderRadius: 14,
-                    background: "rgba(255,255,255,0.05)",
-                    backdropFilter: "blur(6px)"
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: 10
-                    }}
-                  >
-                    <strong>
-                      #{t.id} — {t.subject}
-                    </strong>
-
-                    <span
-                      style={{
-                        padding: "6px 12px",
-                        borderRadius: 20,
-                        background: statusColor[t.status] || "#666",
-                        color: "black",
-                        fontWeight: 700,
+                    padding: 16
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <strong>#{t.id} – {t.subject}</strong>
+                      <span style={{
+                        background: statusColor(t.status),
+                        color: 'white',
+                        padding: '4px 10px',
+                        borderRadius: 999,
                         fontSize: 12
-                      }}
-                    >
-                      {t.status.replace("_", " ").toUpperCase()}
-                    </span>
+                      }}>
+                        {t.status}
+                      </span>
+                    </div>
+
+                    <p style={{ color: '#555', margin: '10px 0' }}>
+                      {t.message}
+                    </p>
+
+                    {t.status === 'open' && (
+                      <button
+                        onClick={async () => {
+                          await resolveSupportTicket(token, t.id);
+                          loadTickets();
+                        }}
+                        style={{
+                          background: '#22c55e',
+                          color: 'white',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: 8,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Mark as Resolved
+                      </button>
+                    )}
                   </div>
-
-                  <p style={{ opacity: 0.7, marginBottom: 10 }}>
-                    {t.message.length > 140
-                      ? t.message.substring(0, 140) + "…"
-                      : t.message}
-                  </p>
-
-                  {t.status === "open" && (
-                    <button
-                      onClick={async () => {
-                        await resolveSupportTicket(token, t.id);
-                        loadTickets();
-                      }}
-                      style={{
-                        ...btnPrimary,
-                        background: "#22c55e",
-                        marginBottom: 10
-                      }}
-                    >
-                      Mark as Resolved
-                    </button>
-                  )}
-
-                  <div style={{ opacity: 0.6, fontSize: 14 }}>
-                    Priority: {priorityLabels[t.priority]} •{" "}
-                    {new Date(t.createdAt).toLocaleDateString("en-US")}
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
-          </div>
+          </>
         )}
-      </main>
+      </div>
     </div>
   );
 }
 
-/* ------------------------------------
-   SHARED STYLES
------------------------------------- */
-const cardStyle = {
-  background: "#020617",
-  padding: 40,
-  borderRadius: 20,
-  boxShadow: "0 40px 120px rgba(0,0,0,0.5)",
-  maxWidth: 900
-};
-
-const labelStyle = {
-  display: "block",
-  opacity: 0.7,
+const label = {
+  display: 'block',
   marginBottom: 6,
-  marginTop: 20,
-  fontSize: 14
+  fontWeight: 600,
+  marginTop: 16
 };
 
-const inputStyle = {
-  width: "100%",
-  padding: "12px 14px",
+const input = {
+  width: '100%',
+  padding: 12,
   borderRadius: 10,
-  background: "rgba(255,255,255,0.05)",
-  border: "none",
-  outline: "1px solid rgba(255,255,255,0.1)",
-  color: "white"
-};
-
-const tabStyle = {
-  padding: "12px 20px",
-  borderRadius: 12,
-  fontWeight: 700,
-  cursor: "pointer",
-  border: "none"
-};
-
-const btnPrimary = {
-  padding: "12px 20px",
-  borderRadius: 10,
-  border: "none",
-  background: "#6366f1",
-  color: "white",
-  cursor: "pointer",
-  fontWeight: 700
+  border: '1px solid #d1d5db',
+  outline: 'none'
 };

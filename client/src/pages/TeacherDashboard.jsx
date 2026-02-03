@@ -46,10 +46,12 @@ export default function TeacherDashboard({ token, user, onLogout }) {
     try {
       const reportRes = await fetch('http://localhost:8000/api/reports/class/101');
       const reportData = await reportRes.json();
+      console.log(reportData);
       setReport(reportData);
 
       const statsRes = await fetch('http://localhost:8000/api/reports/class/101/average');
       const statsData = await statsRes.json();
+      console.log(statsData);
       setStats(statsData);
       
       setAnalyticsError(null);
@@ -75,7 +77,7 @@ export default function TeacherDashboard({ token, user, onLogout }) {
       });
 
       if (response.ok) {
-        // Download the CSV file
+        // Download the CSV fileab
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');

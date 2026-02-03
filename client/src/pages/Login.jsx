@@ -18,7 +18,7 @@ export default function Login({ onLogin }) {
       onLogin(res.token, res.user);
       navigate('/dashboard');
     } catch (e) {
-      setErr(e.response?.data?.error || 'Authentication failed');
+      setErr(e.response?.data?.error || 'Invalid credentials. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -33,10 +33,10 @@ export default function Login({ onLogin }) {
         onLogin(res.token, res.user);
         navigate('/dashboard');
       } else {
-        setErr(res.error || 'Google authentication failed');
+        setErr(res.error || 'Google sign-in failed.');
       }
     } catch {
-      setErr('Google authentication failed');
+      setErr('Google sign-in failed.');
     } finally {
       setLoading(false);
     }
@@ -53,17 +53,19 @@ export default function Login({ onLogin }) {
           style={styles.back}
         >
           <ChevronLeft size={18} />
-          Home
+          Back to Home
         </button>
 
         <h2 style={styles.title}>Welcome Back</h2>
-        <p style={styles.subtitle}>Continue your English journey</p>
+        <p style={styles.subtitle}>
+          Sign in to continue your personalized learning journey
+        </p>
 
         {err && <div style={styles.error}>{err}</div>}
 
         <input
           style={styles.input}
-          placeholder="Username or Email"
+          placeholder="Email or Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
@@ -72,7 +74,7 @@ export default function Login({ onLogin }) {
         <input
           style={styles.input}
           type="password"
-          placeholder="Password"
+          placeholder="Enter your password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -89,7 +91,7 @@ export default function Login({ onLogin }) {
             src="https://www.svgrepo.com/show/475656/google-color.svg"
             style={{ width: 18, marginRight: 8 }}
           />
-          Continue with Google
+          Sign in with Google
         </button>
 
         <button
@@ -102,12 +104,12 @@ export default function Login({ onLogin }) {
         </button>
 
         <p style={styles.footerText}>
-          New here?{' '}
+          Don’t have an account?{' '}
           <span
             onClick={() => navigate('/register')}
             style={styles.link}
           >
-            Create an account
+            Create one
           </span>
         </p>
       </form>
@@ -143,8 +145,8 @@ const styles = {
     width: 360,
     padding: 32,
     borderRadius: 18,
-    background: 'rgba(255,255,255,0.95)',
-    boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
+    background: 'rgba(255,255,255,0.97)',
+    boxShadow: '0 25px 60px rgba(0,0,0,0.25)',
     display: 'flex',
     flexDirection: 'column',
     gap: 14
@@ -180,7 +182,8 @@ const styles = {
     borderRadius: 10,
     border: '1px solid #ddd',
     fontSize: 14,
-    outline: 'none'
+    outline: 'none',
+    transition: '0.2s'
   },
 
   primary: {

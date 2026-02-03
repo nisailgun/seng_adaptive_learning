@@ -22,18 +22,18 @@ const theme = {
 
 /* ---------- DATA ---------- */
 const slides = [
-  { title: 'Learn at Your Own Pace', sub: 'Adaptive questions that evolve with you' },
-  { title: 'Build Real Vocabulary', sub: 'Retention-focused spaced repetition' },
-  { title: 'Measure Your Growth', sub: 'Theta-based ability tracking' }
+  { title: 'Master English Smarter', sub: 'AI-powered learning that adapts to you' },
+  { title: 'Remember What You Learn', sub: 'Science-based spaced repetition system' },
+  { title: 'Track Real Progress', sub: 'Data-driven ability measurement' }
 ];
 
 const features = [
-  { icon: <Target />, title: 'Adaptive Learning', desc: 'Difficulty dynamically adjusts to your ability.' },
-  { icon: <BookOpen />, title: 'Spaced Repetition', desc: 'Optimized review cycles for long-term memory.' },
-  { icon: <BarChart2 />, title: 'Ability Tracking', desc: 'Theta score shows real progress.' },
-  { icon: <Zap />, title: 'Fast Sessions', desc: 'Short, focused learning loops.' },
-  { icon: <Globe2 />, title: 'Real Context', desc: 'Questions from real-world usage.' },
-  { icon: <Trophy />, title: 'Proven Results', desc: 'Thousands of successful learners.' }
+  { icon: <Target />, title: 'Smart Adaptive Learning', desc: 'Questions automatically match your skill level.' },
+  { icon: <BookOpen />, title: 'Science-Based Repetition', desc: 'Memory-optimized review timing.' },
+  { icon: <BarChart2 />, title: 'Ability Analytics', desc: 'Clear data on your improvement.' },
+  { icon: <Zap />, title: 'Focused Micro-Lessons', desc: 'Short sessions, maximum impact.' },
+  { icon: <Globe2 />, title: 'Real-World Context', desc: 'Practical English usage examples.' },
+  { icon: <Trophy />, title: 'Proven Learning Results', desc: 'Trusted by many learners.' }
 ];
 
 export default function Landing() {
@@ -110,7 +110,7 @@ export default function Landing() {
             cursor: 'pointer'
           }}
         >
-          Start Learning
+          Start Your Learning Journey
         </button>
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 30 }}>
@@ -166,10 +166,10 @@ export default function Landing() {
         background: `linear-gradient(135deg, rgba(99,102,241,0.2), transparent)`
       }}>
         <h2 style={{ fontSize: 36, fontWeight: 900 }}>
-          Ready to Level Up Your English?
+          Ready to Boost Your English Skills?
         </h2>
         <p style={{ color: theme.muted, marginTop: 10 }}>
-          Personalized, measurable, effective learning
+          Personalized • Measurable • Effective
         </p>
         <button
           onClick={() => navigate('/login')}
@@ -185,7 +185,7 @@ export default function Landing() {
             cursor: 'pointer'
           }}
         >
-          Get Started Free
+          Get Started — It's Free
         </button>
       </section>
 
@@ -196,7 +196,7 @@ export default function Landing() {
         color: theme.muted,
         borderTop: `1px solid ${theme.border}`
       }}>
-        © 2025 Adaptive Learner
+        © 2026 Adaptive Learner • Version 1.1
       </footer>
     </div>
   );

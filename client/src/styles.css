@@ -4078,3 +4078,72 @@ form.card h3 {
   margin-top: 16px;
 }
 
+/* ===== SAFE CONSOLIDATED POLISH ===== */
+
+/* Typography consistency */
+body {
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Unified transitions */
+button,
+input,
+textarea,
+select,
+a {
+  transition: all 0.2s ease;
+}
+
+/* Unified focus style */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+}
+
+/* Unified hover lift for cards */
+.card,
+.feature-card-large,
+.testimonial-card,
+.module-card,
+.badge-card,
+.support-card,
+.event-card,
+.question-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover,
+.feature-card-large:hover,
+.testimonial-card:hover,
+.module-card:hover,
+.badge-card:hover,
+.support-card:hover,
+.event-card:hover,
+.question-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+/* Buttons feel premium */
+button:hover {
+  transform: translateY(-1px);
+}
+
+/* Modern scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c7d2fe;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a5b4fc;
+}
+

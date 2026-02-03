@@ -83,11 +83,7 @@ export default function AdminDashboard({ token, onLogout }) {
         <div style={{ display: 'flex', gap: 10 }}>
           <HeaderBtn icon={<BookOpen />} onClick={() => navigate('/dashboard')} />
           <HeaderBtn icon={<User />} onClick={() => navigate('/account')} />
-          <HeaderBtn
-            icon={<Users />}
-            onClick={() => navigate('/teacher')}
-            accent
-          />
+
           <HeaderBtn
             icon={<Shield />}
             onClick={() => navigate('/admin/audit-logs')}

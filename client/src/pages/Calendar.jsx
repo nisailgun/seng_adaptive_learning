@@ -31,7 +31,7 @@ export default function Calendar() {
 
   const fetchUserRole = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/user', {
+      const res = await fetch('http://localhost:4000/api/user', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -48,7 +48,7 @@ export default function Calendar() {
 
   const fetchStudents = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/admin/users', {
+      const res = await fetch('http://localhost:4000/api/admin/users', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -60,7 +60,7 @@ export default function Calendar() {
 
   const fetchModules = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/modules', {
+      const res = await fetch('http://localhost:4000/api/modules', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -77,7 +77,7 @@ export default function Calendar() {
       const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
       
       const res = await fetch(
-        `http://localhost:3000/api/calendar?startDate=${startOfMonth.toISOString()}&endDate=${endOfMonth.toISOString()}`,
+        `http://localhost:4000/api/calendar?startDate=${startOfMonth.toISOString()}&endDate=${endOfMonth.toISOString()}`,
         {
           headers: { 'Authorization': `Bearer ${token}` }
         }
@@ -95,7 +95,7 @@ export default function Calendar() {
     e.preventDefault();
     
     try {
-      const res = await fetch('http://localhost:3000/api/assignments', {
+      const res = await fetch('http://localhost:4000/api/assignments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ export default function Calendar() {
         const assignment = await res.json();
         
         // Publish immediately
-        await fetch(`http://localhost:3000/api/assignments/${assignment._id}/publish`, {
+        await fetch(`http://localhost:4000/api/assignments/${assignment._id}/publish`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` }
         });

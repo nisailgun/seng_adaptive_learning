@@ -9,27 +9,29 @@ import {
 } from "../api";
 import VoiceInput from "../components/VoiceInput";
 import AIAssistant from "../components/AIAssistant";
+import { BookOpen, LogOut, Layers, ArrowLeft, Check, X } from "lucide-react";
 
-export default function LearningPath({ token }) {
+export default function LearningPath({ token, onLogout, user }) {
   const [path, setPath] = useState(null);
   const [activeModule, setActiveModule] = useState(null);
   const [moduleContent, setModuleContent] = useState(null);
-  const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [activeQuestion, setActiveQuestion] = useState(null);
-  const [answers, setAnswers] = useState({}); // Per-question answer state
-  const [feedback, setFeedback] = useState({}); // Changed to object to track per question
-  const [aiExplanation, setAiExplanation] = useState(null);
-  const [loadingAI, setLoadingAI] = useState(false);
-  const [evaluating, setEvaluating] = useState(false);
-  const [voiceAnswers, setVoiceAnswers] = useState({}); // Per-question voice answers
-  const [aiQuestionFeedback, setAiQuestionFeedback] = useState(null);
 
+  const [answers, setAnswers] = useState({});
+  const [voiceAnswers, setVoiceAnswers] = useState({});
+  const [feedback, setFeedback] = useState({});
+  const [aiHelp, setAiHelp] = useState({});
+  const [evaluating, setEvaluating] = useState(false);
+  const [loadingAI, setLoadingAI] = useState(false);
+
+  const [activeAIQuestion, setActiveAIQuestion] = useState(null);
+  const [aiAnswer, setAiAnswer] = useState("");
+  const [aiFeedback, setAiFeedback] = useState(null);
 
   useEffect(() => {
     loadPath();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, []);
 
   async function loadPath() {
@@ -37,11 +39,9 @@ export default function LearningPath({ token }) {
     setError("");
     try {
       const data = await getLearningPath(token);
-      console.log("Learning path loaded:", data);
       setPath(data);
     } catch (e) {
-      console.error("Failed to load learning path:", e);
-      setError("Failed to load learning path. Please try again.");
+      setError("Failed to load learning path.");
     } finally {
       setLoading(false);
     }
@@ -49,854 +49,823 @@ export default function LearningPath({ token }) {
 
   async function openModule(m) {
     setActiveModule(m);
-    setActiveQuestion(null);
-    setFeedback({}); // Reset feedback for new module
-    setAiExplanation(null);
+    setModuleContent(null);
+    setAnswers({});
+    setVoiceAnswers({});
+    setFeedback({});
+    setAiHelp({});
     setLoading(true);
-    setError("");
     try {
-      console.log("Opening module:", m);
       const mod = await getModule(token, m.id);
-      console.log("Module content loaded:", mod);
-      if (mod.items && mod.items[0]) {
-        console.log("First item:", mod.items[0]);
-        console.log("First question:", mod.items[0].question);
-        if (mod.items[0].question) {
-          console.log("  - audioUrl:", mod.items[0].question.audioUrl);
-          console.log("  - type:", mod.items[0].question.type);
-          console.log("  - text:", mod.items[0].question.text?.substring(0, 60));
-        }
-      }
-      console.log(`\n📦 TOTAL ITEMS IN MODULE: ${mod.items?.length}`);
-      mod.items?.forEach((item, idx) => {
-        console.log(`   ${idx + 1}. Type: ${item.question?.type}, HasAudio: ${!!item.question?.audioUrl}, Text: ${item.question?.text?.substring(0, 50)}`);
-      });
       setModuleContent(mod);
     } catch (e) {
-      console.error("Failed to load module:", e);
       setError("Failed to open module.");
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleAnswerSubmit(e, item) {
-    e.preventDefault();
-    if (!item.question) return;
-
-    const question = item.question;
-    const questionId = question._id || item.id;
-    const isSpeaking =
-      question.skill === "speaking" || item.type === "speaking";
-
-    // Use per-question answer state
-    const userAnswer = isSpeaking
-      ? (voiceAnswers[questionId] || "").trim()
-      : (answers[questionId] || "").trim();
-
-    if (!userAnswer) {
-      setFeedback((prev) => ({
-        ...prev,
-        [questionId]: { correct: false, message: "⚠️ Please enter an answer." },
-      }));
-      return;
-    }
-
-    setEvaluating(true);
-
-    try {
-      const isFreeText =
-        question.type === "free-text" || question.evaluationType === "semantic";
-
-      // Handle speaking questions with special endpoint
-      if (isSpeaking) {
-        const response = await fetch(
-          "http://localhost:4000/api/evaluate-speech",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              questionId: question._id,
-              transcript: userAnswer,
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Speech evaluation failed");
-        }
-
-        const result = await response.json();
-        const speechEval = result.speechEvaluation;
-
-        setFeedback((prev) => ({
-          ...prev,
-          [questionId]: {
-            correct: result.correct,
-            message: result.correct
-              ? `✅ Excellent speaking! Score: ${speechEval.grade}%\n${speechEval.feedback}`
-              : `📝 Score: ${speechEval.grade}%\n${speechEval.feedback}`,
-            speechScore: speechEval.grade,
-            speechMetrics: {
-              fluency: speechEval.fluency,
-              vocabulary: speechEval.vocabulary,
-              coherence: speechEval.coherence,
-              wordCount: speechEval.wordCount,
-              sentenceCount: speechEval.sentenceCount,
-            },
-          },
-        }));
-
-        // Reset voice answer after submission
-        setVoiceAnswers((prev) => ({ ...prev, [questionId]: "" }));
-        setAnswers((prev) => ({ ...prev, [questionId]: "" }));
-      } else if (isFreeText) {
-        // Use NLP evaluation for free-text responses
-        const result = await submit(
-          token,
-          question._id,
-          false,
-          userAnswer,
-          true
-        );
-
-        const nlpResult = result.nlpEvaluation;
-        const passed = nlpResult?.status === "graded" && nlpResult?.grade >= 70;
-
-        setFeedback((prev) => ({
-          ...prev,
-          [questionId]: {
-            correct: passed,
-            message: passed
-              ? `✅ Great work! Score: ${nlpResult.grade}% - ${nlpResult.feedback}`
-              : nlpResult?.status === "pending_manual_review"
-              ? `⏳ ${nlpResult.feedback}`
-              : `📝 Score: ${nlpResult.grade}% - ${nlpResult.feedback}`,
-            nlpScore: nlpResult?.grade,
-            nlpConfidence: nlpResult?.confidence,
-            needsReview: nlpResult?.status === "pending_manual_review",
-            aiFeedback: result.aiFeedback,
-          },
-        }));
-
-        setAnswers((prev) => ({ ...prev, [questionId]: "" }));
-      } else {
-        // Traditional objective evaluation
-        const correctAnswer = (question.answer || "").toLowerCase();
-        const isCorrect = userAnswer.toLowerCase() === correctAnswer;
-
-        const result = await submit(
-          token,
-          question._id,
-          isCorrect,
-          userAnswer,
-          false
-        );
-
-        setFeedback((prev) => ({
-          ...prev,
-          [questionId]: {
-            correct: result.correct,
-            message: result.correct
-              ? "✅ Correct! Great job!"
-              : `❌ Incorrect. The correct answer is: "${question.answer}"`,
-            aiFeedback: result.aiFeedback,
-          },
-        }));
-
-        // Get AI explanation after answering incorrectly
-        if (!result.correct) {
-          getAIHelp(question.text);
-        }
-
-        setAnswers((prev) => ({ ...prev, [questionId]: "" }));
-      }
-
-      // Reload learning path to get updated theta and recommendations
-      setTimeout(() => loadPath(), 1000);
-    } catch (e) {
-      console.error("Submit error:", e);
-      setFeedback((prev) => ({
-        ...prev,
-        [questionId]: {
-          correct: false,
-          message: "❌ Failed to submit answer. Please try again.",
-        },
-      }));
-    } finally {
-      setEvaluating(false);
-    }
-  }
-
-  async function getAIHelp(concept) {
+  async function getAIHelpForQuestion(text, id) {
     setLoadingAI(true);
-    setAiExplanation(null);
     try {
-      const result = await getAIExplanation(token, concept, "intermediate");
-      setAiExplanation(result.content);
+      const result = await getAIExplanation(token, text, "intermediate");
+      setAiHelp((prev) => ({ ...prev, [id]: result.explanation }));
     } catch (e) {
-      console.error("AI explanation error:", e);
-      setAiExplanation("AI explanation not available at this time.");
+      setAiHelp((prev) => ({ ...prev, [id]: "AI help not available." }));
     } finally {
       setLoadingAI(false);
     }
   }
 
-  async function generatePracticeQuestion(skill, difficulty) {
+  async function handleSubmit(e, item) {
+    e.preventDefault();
+    const q = item.question;
+    const id = item.id || q._id;
+
+    const isSpeaking = q.skill === "speaking";
+    const userAnswer = isSpeaking
+      ? (voiceAnswers[id] || "").trim()
+      : (answers[id] || "").trim();
+
+    if (!userAnswer) {
+      setFeedback((prev) => ({
+        ...prev,
+        [id]: { correct: false, message: "⚠️ Please enter an answer." },
+      }));
+      return;
+    }
+
+    setEvaluating(true);
+    try {
+      let result;
+      if (isSpeaking) {
+        const res = await fetch("http://localhost:4000/api/evaluate-speech", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            questionId: q._id,
+            transcript: userAnswer,
+          }),
+        });
+
+        result = await res.json();
+        setFeedback((prev) => ({
+          ...prev,
+          [id]: {
+            correct: result.correct,
+            message:
+              result.correct
+                ? `Great speaking! Score: ${result.speechEvaluation.grade}%`
+                : `Score: ${result.speechEvaluation.grade}%`,
+            speechMetrics: result.speechEvaluation,
+          },
+        }));
+      } else if (
+        q.type === "free-text" ||
+        q.evaluationType === "semantic"
+      ) {
+        const res = await submit(token, q._id, false, userAnswer, true);
+        const evalData = res.nlpEvaluation;
+        const pass = evalData?.grade >= 70;
+
+        setFeedback((prev) => ({
+          ...prev,
+          [id]: {
+            correct: pass,
+            message: pass
+              ? `Great! Score: ${evalData.grade}%`
+              : `Score: ${evalData.grade}% - ${evalData.feedback}`,
+            nlpScore: evalData.grade,
+          },
+        }));
+      } else {
+        const correct =
+          userAnswer.toLowerCase() === q.answer.toLowerCase();
+        const res = await submit(token, q._id, correct, userAnswer, false);
+        setFeedback((prev) => ({
+          ...prev,
+          [id]: {
+            correct,
+            message: correct
+              ? "Correct!"
+              : `Incorrect. The correct answer is: ${q.answer}`,
+          },
+        }));
+      }
+    } catch (e) {
+      setFeedback((prev) => ({
+        ...prev,
+        [id]: { correct: false, message: "Failed to evaluate answer." },
+      }));
+    }
+    setEvaluating(false);
+  }
+
+  async function generateAIPractice(skill, difficulty) {
     setLoadingAI(true);
     try {
       const result = await generateAIQuestion(token, skill, difficulty, skill);
-      setActiveQuestion({
-        text: result.text,
-        answer: result.answer,
-        options: result.options,
-        explanation: result.explanation,
-        isAIGenerated: true,
-      });
-    } catch (e) {
-      console.error("AI question generation error:", e);
+      setActiveAIQuestion(result);
+      setAiAnswer("");
+      setAiFeedback(null);
+    } catch (err) {
       setError("Failed to generate AI question.");
     } finally {
       setLoadingAI(false);
     }
   }
 
-  if (loading && !path) {
+  /* =======================
+     SIDEBAR
+  ======================= */
+  const Sidebar = () => (
+    <aside
+      style={{
+        width: 260,
+        padding: 30,
+        background: "rgba(255,255,255,0.05)",
+        backdropFilter: "blur(12px)",
+        display: "flex",
+        flexDirection: "column",
+        gap: 18,
+        minHeight: "100vh",
+      }}
+    >
+      <h2 style={{ fontSize: 22, fontWeight: 800 }}>Learning Path</h2>
+
+      <NavItem
+        icon={<BookOpen size={18} />}
+        label="Dashboard"
+        onClick={() => {
+          setActiveModule(null);
+          setModuleContent(null);
+        }}
+      />
+
+      <NavItem
+        icon={<Layers size={18} />}
+        label="Modules"
+        onClick={() => {
+          setActiveModule(null);
+          setModuleContent(null);
+        }}
+      />
+
+      <div style={{ flex: 1 }} />
+
+      <NavItem
+        icon={<LogOut size={18} />}
+        label="Logout"
+        danger
+        onClick={onLogout}
+      />
+    </aside>
+  );
+
+  /* =======================
+     NAV ITEM
+  ======================= */
+  function NavItem({ icon, label, onClick, danger }) {
     return (
-      <div className="learning-path-container">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>Loading your personalized learning path...</p>
-        </div>
-      </div>
+      <button
+        onClick={onClick}
+        style={{
+          display: "flex",
+          gap: 12,
+          alignItems: "center",
+          padding: "12px 14px",
+          borderRadius: 10,
+          background: danger
+            ? "rgba(239,68,68,0.15)"
+            : "rgba(255,255,255,0.08)",
+          color: danger ? "#fecaca" : "white",
+          border: "none",
+          cursor: "pointer",
+          fontWeight: 600,
+        }}
+      >
+        {icon}
+        {label}
+      </button>
     );
   }
 
-  if (error && !path) {
-    return (
-      <div className="learning-path-container">
-        <div className="error-message">
-          <p>{error}</p>
-          <button onClick={loadPath} className="btn-retry">
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
+  /* =======================
+     MAIN LAYOUT
+  ======================= */
+  return (
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        background: "#0f172a",
+        color: "white",
+      }}
+    >
+      <Sidebar />
 
-  if (!path) {
-    return (
-      <div className="learning-path-container">
-        <div className="empty-state">
-          <h3>No Learning Path Available</h3>
-          <p>
-            Complete the initial assessment to generate your personalized
-            learning path.
-          </p>
+      <main style={{ flex: 1, padding: 60, overflowY: "auto" }}>
+        {/* HEADER */}
+        <h1 style={{ fontSize: 34, fontWeight: 900, marginBottom: 10 }}>
+          Your AI-Powered Learning Path
+        </h1>
+        <p style={{ opacity: 0.6, marginBottom: 40 }}>
+          Personalized module recommendations and adaptive practice.
+        </p>
+
+        {/* ERROR */}
+        {error && (
+          <div
+            style={{
+              marginBottom: 20,
+              padding: 20,
+              background: "rgba(255,0,0,0.1)",
+              borderRadius: 10,
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        {/* LOADING */}
+        {loading && !path && (
+          <div style={{ padding: 60 }}>Loading...</div>
+        )}
+
+        {/* MAIN PATH VIEW */}
+        {!activeModule ? (
+          <PathOverview
+            path={path}
+            openModule={openModule}
+            generateAIPractice={generateAIPractice}
+          />
+        ) : (
+          <ModuleView
+            activeModule={activeModule}
+            moduleContent={moduleContent}
+            answers={answers}
+            voiceAnswers={voiceAnswers}
+            feedback={feedback}
+            loadingAI={loadingAI}
+            evaluating={evaluating}
+            setAnswers={setAnswers}
+            setVoiceAnswers={setVoiceAnswers}
+            handleSubmit={handleSubmit}
+            getAIHelpForQuestion={getAIHelpForQuestion}
+            aiHelp={aiHelp}
+            setActiveModule={setActiveModule}
+            setModuleContent={setModuleContent}
+          />
+        )}
+
+        {/* AI GENERATED QUESTION MODAL */}
+        {activeAIQuestion && (
+          <AIPracticeModal
+            activeAIQuestion={activeAIQuestion}
+            setActiveAIQuestion={setActiveAIQuestion}
+            aiAnswer={aiAnswer}
+            setAiAnswer={setAiAnswer}
+            aiFeedback={aiFeedback}
+            setAiFeedback={setAiFeedback}
+            token={token}
+          />
+        )}
+
+        {/* AI ASSISTANT */}
+        <div style={{ marginTop: 60 }}>
+          <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 20 }}>
+            🤖 Need More Help?
+          </h2>
+          <AIAssistant token={token} />
         </div>
-      </div>
-    );
-  }
+      </main>
+    </div>
+  );
+}
+
+/* ============================
+   PATH OVERVIEW SECTION
+============================ */
+function PathOverview({ path, openModule, generateAIPractice }) {
+  if (!path) return null;
 
   return (
-    <div className="learning-path-container">
-      <div className="learning-path-header">
-        <h2>🎯 Your AI-Powered Learning Path</h2>
-        <div className="path-stats">
-          <div className="stat-item">
-            <span className="stat-label">Your Level</span>
-            <span className="stat-value">
-              {path.suggestedLevel || "Beginner"}
-            </span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-label">Ability Score (θ)</span>
-            <span className="stat-value">
-              {path.theta?.toFixed(2) || "0.00"}
-            </span>
-          </div>
-        </div>
+    <div>
+      {/* STATS */}
+      <div style={{ display: "flex", gap: 20, marginBottom: 40 }}>
+        <StatCard label="Your Level" value={path.suggestedLevel || "Beginner"} />
+        <StatCard
+          label="Ability Score (θ)"
+          value={path.theta?.toFixed(2) || "0.00"}
+        />
       </div>
 
-      {error && <div className="error-banner">{error}</div>}
+      <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 20 }}>
+        Recommended Modules
+      </h3>
 
-      {!activeModule ? (
-        <div className="modules-grid">
-          <h3 className="section-title">Recommended Modules</h3>
-          <div className="modules-list">
-            {path.modules && path.modules.length > 0 ? (
-              path.modules.map((m) => (
-                <div key={m.id} className="module-card">
-                  <div className="module-header">
-                    <h4>{m.title}</h4>
-                    <span className="module-skill">{m.skill}</span>
-                  </div>
-                  <p className="module-level">Level {m.level}</p>
-                  <button
-                    onClick={() => openModule(m)}
-                    className="btn-open-module"
-                  >
-                    Start Module →
-                  </button>
-                </div>
-              ))
-            ) : (
-              <p className="no-modules">No modules available yet.</p>
-            )}
-          </div>
-        </div>
-      ) : (
-        <div className="module-content">
-          <button
-            onClick={() => {
-              setActiveModule(null);
-              setModuleContent(null);
-              setActiveQuestion(null);
-              setFeedback(null);
-              setAiExplanation(null);
-            }}
-            className="btn-back"
-          >
-            ← Back to Modules
-          </button>
-
-          <div className="module-detail">
-            <h3>{moduleContent?.title || activeModule.title}</h3>
-            <p className="module-description">
-              {moduleContent?.description || ""}
-            </p>
-
-            {moduleContent?.items && moduleContent.items.length > 0 ? (
-              <div className="questions-list">
-                <h4>Practice Questions ({moduleContent.items.length})</h4>
-                {(() => {
-                  const typeCount = {};
-                  const audioCount = {};
-                  moduleContent.items.forEach(item => {
-                    const q = item.question;
-                    if (q) {
-                      typeCount[q.type] = (typeCount[q.type] || 0) + 1;
-                      if (q.audioUrl) audioCount[q.type] = (audioCount[q.type] || 0) + 1;
-                    }
-                  });
-                  const typeList = Object.entries(typeCount).map(([type, count]) => {
-                    const withAudio = audioCount[type] || 0;
-                    return `${count} ${type}${withAudio > 0 ? ` (${withAudio} with audio)` : ''}`;
-                  }).join(', ');
-                  return <p style={{ fontSize: "0.9em", color: "#666", marginBottom: "15px" }}>
-                    📊 Contains: {typeList} • 💡 Scroll down to see all questions
-                  </p>;
-                })()}
-                
-                {moduleContent.items.map((item, index) => {
-                  const question = item.question;
-                  if (!question) {
-                    return (
-                      <div key={item.id || index} className="question-item">
-                        <div className="question-header">
-                          <span className="question-number">#{index + 1}</span>
-                          <span className="question-type">
-                            {item.type || "upcoming"}
-                          </span>
-                        </div>
-                        <p className="no-question">
-                          ⏳ Question coming soon...
-                        </p>
-                      </div>
-                    );
-                  }
-                  // Debug logging
-                  if (index === 0) {
-                    console.log(`[Q${index + 1}] audioUrl:`, question.audioUrl);
-                    console.log(`[Q${index + 1}] type:`, question.type);
-                    console.log(`[Q${index + 1}] options:`, question.options?.length);
-                  }
-
-                  const isFreeText =
-                    question.type === "free-text" ||
-                    question.evaluationType === "semantic";
-                  const isSpeaking =
-                    question.skill === "speaking" || item.type === "speaking";
-
-                  return (
-                    <div key={item.id || index} className="question-item">
-                      <div className="question-header">
-                        <span className="question-number">#{index + 1}</span>
-                        <span className="question-type">
-                          {isSpeaking
-                            ? "🎤 Speaking"
-                            : isFreeText
-                            ? "📝 Free Text"
-                            : question.type || "objective"}
-                        </span>
-                        <span className="question-difficulty">
-                          Level:{" "}
-                          {question.difficulty >= 1.5
-                            ? "Advanced"
-                            : question.difficulty >= 0
-                            ? "Intermediate"
-                            : "Beginner"}
-                        </span>
-                      </div>
-
-                      <div className="question-content">
-                        <p className="question-text">{question.text}</p>
-
-                        {/* Audio Player for Questions with Audio */}
-                        {(question.audioUrl || question.audioText) && (
-                          <div className="audio-section">
-                            <label className="audio-label">🎧 Listen to the audio:</label>
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
-                              {question.audioText && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    window.speechSynthesis.cancel();
-                                    const utterance = new SpeechSynthesisUtterance(question.audioText);
-                                    utterance.rate = 0.8;
-                                    utterance.pitch = 1;
-                                    utterance.volume = 1;
-                                    // Try to use a better English voice if available
-                                    const voices = window.speechSynthesis.getVoices();
-                                    const englishVoice = voices.find(v => v.lang.startsWith('en'));
-                                    if (englishVoice) utterance.voice = englishVoice;
-                                    window.speechSynthesis.speak(utterance);
-                                  }}
-                                  className="btn-text-to-speech"
-                                  style={{
-                                    padding: '10px 16px',
-                                    backgroundColor: '#2196F3',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px',
-                                    fontWeight: 'bold',
-                                    flex: '1',
-                                    minWidth: '150px'
-                                  }}
-                                  title="Play audio using text-to-speech"
-                                >
-                                  🔊 Play Audio
-                                </button>
-                              )}
-                            </div>
-                            {question.audioText && (
-                              <details className="audio-transcript">
-                                <summary>📝 Show transcript</summary>
-                                <p className="transcript-text">{question.audioText}</p>
-                              </details>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Voice Input for Speaking Questions - FR23 */}
-                        {isSpeaking && (
-                          <div className="learning-path-voice-section">
-                            <VoiceInput
-                              onTranscriptChange={(transcript) => {
-                                setVoiceAnswers((prev) => ({
-                                  ...prev,
-                                  [item.id || item.question._id]: transcript,
-                                }));
-                                setAnswers((prev) => ({
-                                  ...prev,
-                                  [item.id || item.question._id]: transcript,
-                                }));
-                              }}
-                              placeholder="Click the microphone and speak your answer clearly..."
-                            />
-                          </div>
-                        )}
-
-                        {/* Display options for multiple choice */}
-                        {!isSpeaking &&
-                          question.options &&
-                          question.options.length > 0 && (
-                            <div>
-                              <div className="question-options">
-                                {question.options.map((opt, idx) => (
-                                  <button
-                                    key={idx}
-                                    onClick={() =>
-                                      setAnswers((prev) => ({
-                                        ...prev,
-                                        [item.id || question._id]: opt,
-                                      }))
-                                    }
-                                    className={`option-btn ${
-                                      answers[item.id || question._id] === opt
-                                        ? "selected"
-                                        : ""
-                                    }`}
-                                  >
-                                    {opt}
-                                  </button>
-                                ))}
-                              </div>
-                              <form onSubmit={(e) => handleAnswerSubmit(e, item)}>
-                                <button
-                                  type="submit"
-                                  className="btn-submit-answer"
-                                  disabled={
-                                    evaluating ||
-                                    !(answers[item.id || question._id] || "").trim()
-                                  }
-                                >
-                                  {evaluating ? "⏳ Evaluating..." : "Submit Answer"}
-                                </button>
-                              </form>
-                            </div>
-                          )}
-
-                        {/* Text Input for Free-Text/Non-Speaking Questions */}
-                        {!isSpeaking && (!question.options || question.options.length === 0) && (
-                          <form onSubmit={(e) => handleAnswerSubmit(e, item)}>
-                            <textarea
-                              value={answers[item.id || question._id] || ""}
-                              onChange={(e) =>
-                                setAnswers((prev) => ({
-                                  ...prev,
-                                  [item.id || question._id]: e.target.value,
-                                }))
-                              }
-                              placeholder={
-                                isFreeText
-                                  ? "Write your detailed response here..."
-                                  : "Your answer..."
-                              }
-                              className={
-                                isFreeText
-                                  ? "question-textarea"
-                                  : "question-input"
-                              }
-                              rows={isFreeText ? 5 : 1}
-                              disabled={evaluating}
-                            />
-                            <button
-                              type="submit"
-                              className="btn-submit-answer"
-                              disabled={
-                                evaluating ||
-                                !(answers[item.id || question._id] || "").trim()
-                              }
-                            >
-                              {evaluating
-                                ? "⏳ Evaluating..."
-                                : isFreeText
-                                ? "📤 Submit for Evaluation"
-                                : "Submit Answer"}
-                            </button>
-                          </form>
-                        )}
-
-                        {/* Submit Button for Speaking Questions */}
-                        {isSpeaking && (
-                          <form
-                            onSubmit={(e) => handleAnswerSubmit(e, item)}
-                            className="learning-path-submit-speaking"
-                          >
-                            <button
-                              type="submit"
-                              className="btn-submit-answer"
-                              disabled={
-                                evaluating ||
-                                !(
-                                  voiceAnswers[item.id || question._id] || ""
-                                ).trim()
-                              }
-                              style={{ width: "100%" }}
-                            >
-                              {evaluating
-                                ? "⏳ Evaluating Speech..."
-                                : "🎤 Submit Speaking Response"}
-                            </button>
-                          </form>
-                        )}
-
-                        {feedback[item.id || question._id] && (
-                          <div
-                            className={`feedback ${
-                              feedback[item.id || question._id].correct
-                                ? "correct"
-                                : feedback[item.id || question._id].needsReview
-                                ? "review"
-                                : "incorrect"
-                            }`}
-                          >
-                            <div className="feedback-message">
-                              {feedback[item.id || question._id].message}
-                            </div>
-
-                            {/* Speech Metrics Display */}
-                            {feedback[item.id || question._id]
-                              .speechMetrics && (
-                              <div className="speech-metrics">
-                                <h5>📊 Speech Analysis</h5>
-                                <div className="metrics-grid">
-                                  <div className="metric">
-                                    <span className="metric-label">
-                                      Fluency:
-                                    </span>
-                                    <span className="metric-value">
-                                      {
-                                        feedback[item.id || question._id]
-                                          .speechMetrics.fluency
-                                      }
-                                      %
-                                    </span>
-                                  </div>
-                                  <div className="metric">
-                                    <span className="metric-label">
-                                      Vocabulary:
-                                    </span>
-                                    <span className="metric-value">
-                                      {
-                                        feedback[item.id || question._id]
-                                          .speechMetrics.vocabulary
-                                      }
-                                      %
-                                    </span>
-                                  </div>
-                                  <div className="metric">
-                                    <span className="metric-label">
-                                      Coherence:
-                                    </span>
-                                    <span className="metric-value">
-                                      {
-                                        feedback[item.id || question._id]
-                                          .speechMetrics.coherence
-                                      }
-                                      %
-                                    </span>
-                                  </div>
-                                  <div className="metric">
-                                    <span className="metric-label">
-                                      Words Spoken:
-                                    </span>
-                                    <span className="metric-value">
-                                      {
-                                        feedback[item.id || question._id]
-                                          .speechMetrics.wordCount
-                                      }
-                                    </span>
-                                  </div>
-                                  <div className="metric">
-                                    <span className="metric-label">
-                                      Sentences:
-                                    </span>
-                                    <span className="metric-value">
-                                      {
-                                        feedback[item.id || question._id]
-                                          .speechMetrics.sentenceCount
-                                      }
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* NLP Metrics Display */}
-                            {feedback[item.id || question._id].nlpScore !==
-                              undefined && (
-                              <div className="nlp-details">
-                                <div className="nlp-score">
-                                  Score:{" "}
-                                  {feedback[item.id || question._id].nlpScore}%
-                                  {feedback[item.id || question._id]
-                                    .nlpConfidence &&
-                                    ` (Confidence: ${Math.round(
-                                      feedback[item.id || question._id]
-                                        .nlpConfidence * 100
-                                    )}%)`}
-                                </div>
-                              </div>
-                            )}
-
-                            {feedback[item.id || question._id].aiFeedback && (
-                              <div className="ai-feedback-box">
-                                <strong>💡 AI Feedback:</strong>
-                                <p>
-                                  {feedback[item.id || question._id].aiFeedback}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {!feedback[item.id || question._id] && !evaluating && (
-                          <button
-                            onClick={() => getAIHelp(question.text)}
-                            className="btn-ai-help"
-                            disabled={loadingAI}
-                          >
-                            {loadingAI ? "Loading..." : "💡 Get AI Help"}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="no-questions">No questions in this module yet.</p>
-            )}
-
-            {aiExplanation && (
-              <div className="ai-explanation">
-                <h4>🤖 AI Explanation</h4>
-                <p style={{ whiteSpace: "pre-wrap" }}>{aiExplanation}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {activeQuestion && activeQuestion.isAIGenerated && (
-        <div className="ai-generated-question">
-          <h4>🤖 AI Generated Practice Question</h4>
-          <p className="question-text">{activeQuestion.text}</p>
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              if (!answer.trim()) return;
-
-              setEvaluating(true);
-              try {
-                // Check if it's a simple answer comparison or needs NLP
-                const isLongAnswer = answer.split(/\s+/).length > 10;
-
-                if (isLongAnswer) {
-                  // Use NLP evaluation for longer answers
-                  const result = await evaluateResponse(token, answer, null);
-                  const passed = result.passed;
-
-                  setFeedback({
-                    correct: passed,
-                    message: passed
-                      ? `✅ Excellent! Score: ${result.evaluation.grade}% - ${result.evaluation.feedback}`
-                      : `📝 Score: ${result.evaluation.grade}% - ${result.evaluation.feedback}`,
-                    nlpScore: result.evaluation.grade,
-                  });
-                } else {
-                  // Simple comparison for short answers
-                  const correct =
-                    answer.toLowerCase().trim() ===
-                    (activeQuestion.answer || "").toLowerCase().trim();
-                  setFeedback({
-                    correct,
-                    message: correct
-                      ? "✅ Correct!"
-                      : `❌ The answer is: ${activeQuestion.answer}`,
-                  });
-                }
-              } catch (err) {
-                setFeedback({
-                  correct: false,
-                  message: "❌ Error evaluating answer",
-                });
-              } finally {
-                setEvaluating(false);
-              }
-              setAnswer("");
+      {/* MODULE GRID */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))",
+          gap: 20,
+        }}
+      >
+        {path.modules?.map((m) => (
+          <div
+            key={m.id}
+            style={{
+              padding: 24,
+              borderRadius: 20,
+              background: "rgba(255,255,255,0.05)",
+              backdropFilter: "blur(12px)",
             }}
           >
-            <textarea
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-              placeholder="Your answer..."
-              className="question-input"
-              rows={3}
-              disabled={evaluating}
-            />
+            <h4 style={{ fontSize: 20, fontWeight: 800 }}>{m.title}</h4>
+            <p style={{ opacity: 0.6, margin: "6px 0" }}>Skill: {m.skill}</p>
+            <p style={{ opacity: 0.6 }}>Level {m.level}</p>
+
             <button
-              type="submit"
-              className="btn-submit-answer"
-              disabled={evaluating || !answer.trim()}
+              onClick={() => openModule(m)}
+              style={btnPrimary}
             >
-              {evaluating ? "⏳ Evaluating..." : "Submit"}
+              Start →
             </button>
-          </form>
-          {feedback && (
-            <div
-              className={`feedback ${
-                feedback.correct ? "correct" : "incorrect"
-              }`}
+          </div>
+        ))}
+      </div>
+
+      {/* AI PRACTICE QUICK ACTION */}
+      <div style={{ marginTop: 40 }}>
+        <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 16 }}>
+          Quick AI Practice
+        </h3>
+
+        <div style={{ display: "flex", gap: 12 }}>
+          {["reading", "writing", "listening", "speaking"].map((skill) => (
+            <button
+              key={skill}
+              onClick={() => generateAIPractice(skill, "intermediate")}
+              style={{
+                ...btnGhost,
+                padding: "12px 18px",
+                textTransform: "capitalize",
+              }}
             >
-              {feedback.message}
-            </div>
-          )}
-          <button
-            onClick={() => {
-              setActiveQuestion(null);
-              setFeedback(null);
-              setAnswer("");
-            }}
-            className="btn-close"
-          >
-            Close
-          </button>
+              Practice {skill}
+            </button>
+          ))}
         </div>
-      )}
-
-      <style jsx>{`
-        .audio-section {
-          margin: 20px 0;
-          padding: 15px;
-          background: #f5f9ff;
-          border-radius: 8px;
-          border-left: 4px solid #667eea;
-        }
-
-        .audio-label {
-          display: block;
-          font-weight: 600;
-          margin-bottom: 10px;
-          color: #333;
-        }
-
-        .audio-player {
-          width: 100%;
-          margin-bottom: 10px;
-          border-radius: 6px;
-        }
-
-        .audio-transcript {
-          margin-top: 10px;
-          padding: 10px;
-          background: #f0f0f0;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-
-        .audio-transcript summary {
-          font-weight: 500;
-          color: #667eea;
-          cursor: pointer;
-        }
-
-        .transcript-text {
-          margin-top: 10px;
-          padding: 10px;
-          background: white;
-          border-radius: 4px;
-          font-style: italic;
-          color: #555;
-          line-height: 1.6;
-        }
-      `}</style>
-
-      {/* AI Assistant Section */}
-      <div className="ai-assistant-section">
-        <h2 style={{ marginTop: "40px", marginBottom: "20px", borderTop: "2px solid #667eea", paddingTop: "20px" }}>
-          🤖 AI Assistant
-        </h2>
-        <AIAssistant token={token} />
       </div>
     </div>
   );
 }
+
+/* ============================
+   MODULE VIEW SECTION
+============================ */
+function ModuleView({
+  activeModule,
+  moduleContent,
+  answers,
+  voiceAnswers,
+  feedback,
+  loadingAI,
+  evaluating,
+  setAnswers,
+  setVoiceAnswers,
+  handleSubmit,
+  getAIHelpForQuestion,
+  aiHelp,
+  setActiveModule,
+  setModuleContent,
+}) {
+  return (
+    <div style={{ marginTop: 20 }}>
+      <button
+        onClick={() => {
+          setActiveModule(null);
+          setModuleContent(null);
+        }}
+        style={btnGhost}
+      >
+        ← Back to Modules
+      </button>
+
+      <h2 style={{ fontSize: 28, fontWeight: 800, margin: "20px 0 6px" }}>
+        {moduleContent?.title}
+      </h2>
+      <p style={{ opacity: 0.6, marginBottom: 20 }}>
+        {moduleContent?.description}
+      </p>
+
+      {/* QUESTIONS */}
+      {moduleContent?.items?.map((item, index) => {
+        const q = item.question;
+        if (!q)
+          return (
+            <div
+              key={index}
+              style={{
+                padding: 20,
+                background: "rgba(255,255,255,0.05)",
+                borderRadius: 12,
+                marginBottom: 20,
+              }}
+            >
+              Question coming soon...
+            </div>
+          );
+
+        const id = item.id || q._id;
+        const isSpeaking = q.skill === "speaking";
+        const isFreeText = q.type === "free-text";
+
+        return (
+          <div
+            key={id}
+            style={{
+              background: "#020617",
+              padding: 30,
+              borderRadius: 20,
+              marginBottom: 30,
+              boxShadow: "0 30px 80px rgba(0,0,0,0.5)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                gap: 20,
+                alignItems: "center",
+                marginBottom: 20,
+              }}
+            >
+              <span style={{ opacity: 0.5 }}>#{index + 1}</span>
+              <span
+                style={{
+                  padding: "4px 10px",
+                  borderRadius: 12,
+                  background: "rgba(255,255,255,0.08)",
+                  fontSize: 12,
+                  textTransform: "capitalize",
+                }}
+              >
+                {q.skill}
+              </span>
+              <span style={{ opacity: 0.5 }}>
+                Level:{" "}
+                {q.difficulty >= 1.5
+                  ? "Advanced"
+                  : q.difficulty >= 0
+                  ? "Intermediate"
+                  : "Beginner"}
+              </span>
+            </div>
+
+            <p style={{ fontSize: 18, lineHeight: 1.6 }}>{q.text}</p>
+
+            {/* Audio Section */}
+            {q.audioText && (
+              <div
+                style={{
+                  marginTop: 20,
+                  padding: 20,
+                  background: "rgba(255,255,255,0.03)",
+                  borderRadius: 12,
+                }}
+              >
+                <button
+                  onClick={() => {
+                    const u = new SpeechSynthesisUtterance(q.audioText);
+                    u.rate = 0.8;
+                    speechSynthesis.speak(u);
+                  }}
+                  style={{
+                    ...btnPrimary,
+                    padding: "10px 14px",
+                    marginBottom: 10,
+                  }}
+                >
+                  🔊 Play Audio
+                </button>
+                <details>
+                  <summary>Transcript</summary>
+                  <p style={{ opacity: 0.6, marginTop: 10 }}>
+                    {q.audioText}
+                  </p>
+                </details>
+              </div>
+            )}
+
+            {/* Answer Form */}
+            <form
+              onSubmit={(e) => handleSubmit(e, item)}
+              style={{ marginTop: 20 }}
+            >
+              {isSpeaking ? (
+                <div>
+                  <VoiceInput
+                    onTranscriptChange={(t) => {
+                      setVoiceAnswers((prev) => ({
+                        ...prev,
+                        [id]: t,
+                      }));
+                      setAnswers((prev) => ({ ...prev, [id]: t }));
+                    }}
+                  />
+                </div>
+              ) : isFreeText ? (
+                <textarea
+                  value={answers[id] || ""}
+                  onChange={(e) =>
+                    setAnswers((prev) => ({
+                      ...prev,
+                      [id]: e.target.value,
+                    }))
+                  }
+                  rows={4}
+                  placeholder="Write your answer..."
+                  style={textAreaStyle}
+                />
+              ) : q.options?.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {q.options.map((opt, i) => (
+                    <button
+                      type="button"
+                      key={i}
+                      style={{
+                        ...optionStyle,
+                        background:
+                          answers[id] === opt
+                            ? "#6366f1"
+                            : "rgba(255,255,255,0.05)",
+                      }}
+                      onClick={() =>
+                        setAnswers((prev) => ({ ...prev, [id]: opt }))
+                      }
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <input
+                  value={answers[id] || ""}
+                  onChange={(e) =>
+                    setAnswers((prev) => ({
+                      ...prev,
+                      [id]: e.target.value,
+                    }))
+                  }
+                  placeholder="Your answer..."
+                  style={inputStyle}
+                />
+              )}
+
+              <button
+                type="submit"
+                disabled={evaluating}
+                style={{ ...btnPrimary, marginTop: 20 }}
+              >
+                {evaluating ? "Evaluating..." : "Submit Answer"}
+              </button>
+            </form>
+
+            {/* Feedback */}
+            {feedback[id] && (
+              <div
+                style={{
+                  marginTop: 20,
+                  padding: 20,
+                  background: feedback[id].correct
+                    ? "rgba(34,197,94,0.15)"
+                    : "rgba(239,68,68,0.15)",
+                  borderRadius: 12,
+                }}
+              >
+                <p style={{ whiteSpace: "pre-wrap" }}>
+                  {feedback[id].message}
+                </p>
+              </div>
+            )}
+
+            {/* AI HELP BUTTON */}
+            {!feedback[id] && (
+              <button
+                disabled={loadingAI}
+                onClick={() => getAIHelpForQuestion(q.text, id)}
+                style={{
+                  ...btnGhost,
+                  marginTop: 20,
+                  padding: "12px 16px",
+                }}
+              >
+                {loadingAI ? "Loading..." : "💡 Get AI Help"}
+              </button>
+            )}
+
+            {/* AI HELP DISPLAY */}
+            {aiHelp[id] && (
+              <div
+                style={{
+                  marginTop: 15,
+                  padding: 20,
+                  borderRadius: 14,
+                  background: "linear-gradient(135deg,#6366f1,#22d3ee)",
+                  color: "#020617",
+                  fontWeight: 600,
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {aiHelp[id]}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ============================
+   AI PRACTICE MODAL
+============================ */
+function AIPracticeModal({
+  activeAIQuestion,
+  setActiveAIQuestion,
+  aiAnswer,
+  setAiAnswer,
+  aiFeedback,
+  setAiFeedback,
+  token,
+}) {
+  async function evaluateAIAnswer() {
+    if (!aiAnswer.trim()) return;
+    try {
+      const isLong = aiAnswer.split(/\s+/).length > 10;
+      let result;
+
+      if (isLong) {
+        result = await evaluateResponse(token, aiAnswer);
+        setAiFeedback({
+          correct: result.passed,
+          message: result.evaluation.feedback,
+          score: result.evaluation.grade,
+        });
+      } else {
+        const correct =
+          aiAnswer.toLowerCase() ===
+          activeAIQuestion.answer.toLowerCase();
+        setAiFeedback({
+          correct,
+          message: correct
+            ? "Correct!"
+            : `Incorrect. Answer: ${activeAIQuestion.answer}`,
+        });
+      }
+    } catch (e) {
+      setAiFeedback({
+        correct: false,
+        message: "Error evaluating answer.",
+      });
+    }
+  }
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(0,0,0,0.6)",
+        backdropFilter: "blur(8px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 40,
+        zIndex: 9999,
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 640,
+          background: "#020617",
+          padding: 40,
+          borderRadius: 20,
+          boxShadow: "0 40px 100px rgba(0,0,0,0.7)",
+        }}
+      >
+        <h3 style={{ fontSize: 24, fontWeight: 800, marginBottom: 10 }}>
+          🤖 AI Generated Question
+        </h3>
+
+        <p style={{ opacity: 0.7, marginBottom: 20 }}>
+          {activeAIQuestion.text}
+        </p>
+
+        <textarea
+          value={aiAnswer}
+          onChange={(e) => setAiAnswer(e.target.value)}
+          placeholder="Your answer..."
+          rows={4}
+          style={textAreaStyle}
+        />
+
+        <button
+          onClick={evaluateAIAnswer}
+          style={{ ...btnPrimary, width: "100%", marginTop: 20 }}
+        >
+          Submit
+        </button>
+
+        {aiFeedback && (
+          <div
+            style={{
+              marginTop: 20,
+              padding: 20,
+              borderRadius: 12,
+              background: aiFeedback.correct
+                ? "rgba(34,197,94,0.15)"
+                : "rgba(239,68,68,0.15)",
+            }}
+          >
+            <p>{aiFeedback.message}</p>
+          </div>
+        )}
+
+        <button
+          onClick={() => setActiveAIQuestion(null)}
+          style={{ ...btnGhost, width: "100%", marginTop: 20 }}
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ============================
+   SHARED COMPONENTS & STYLES
+============================ */
+function StatCard({ label, value }) {
+  return (
+    <div
+      style={{
+        flex: 1,
+        background: "#020617",
+        padding: 30,
+        borderRadius: 20,
+        boxShadow: "0 30px 100px rgba(0,0,0,0.5)",
+      }}
+    >
+      <div style={{ opacity: 0.6 }}>{label}</div>
+      <div style={{ fontSize: 32, fontWeight: 900 }}>{value}</div>
+    </div>
+  );
+}
+
+const btnPrimary = {
+  padding: "12px 20px",
+  borderRadius: 10,
+  border: "none",
+  background: "#6366f1",
+  color: "white",
+  cursor: "pointer",
+  fontWeight: 700,
+};
+
+const btnGhost = {
+  ...btnPrimary,
+  background: "rgba(255,255,255,0.1)",
+};
+
+const inputStyle = {
+  width: "100%",
+  padding: "12px 14px",
+  borderRadius: 10,
+  border: "none",
+  background: "#020617",
+  color: "white",
+  outline: "1px solid rgba(255,255,255,0.1)",
+};
+
+const textAreaStyle = {
+  ...inputStyle,
+  resize: "vertical",
+};
+
+const optionStyle = {
+  padding: "12px 14px",
+  borderRadius: 10,
+  border: "none",
+  color: "white",
+  cursor: "pointer",
+  textAlign: "left",
+};

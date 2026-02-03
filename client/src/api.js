@@ -143,3 +143,15 @@ export const correctWriting = (token, text, focusArea = 'general') =>
   API.post('/ai/correct-writing', { text, focusArea }, {
     headers: { Authorization: `Bearer ${token}` }
   }).then((r) => r.data);
+
+  export async function getWrongResponseAnalysis(token) {
+  const res = await fetch(`http://localhost:4000/api/ai/wrong-responses-analysis`, {
+    headers: { 
+      'Authorization': `Bearer ${token}` 
+    }
+  });
+
+  if (!res.ok) throw new Error('Failed analysis');
+
+  return res.json();
+}

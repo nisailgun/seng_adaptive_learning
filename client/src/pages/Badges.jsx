@@ -209,291 +209,326 @@ export default function Badges({ token, user }) {
         )}
       </div>
 
-      <style>{`
-        .badges-page {
-          padding: 40px 20px;
-          max-width: 1200px;
-          margin: 0 auto;
-          background: #f8f9fa;
-          min-height: 100vh;
-        }
+<style>{
+`
+/* ================================
+   GLOBAL PAGE CONTAINER
+================================ */
+.badges-page {
+  padding: 30px 16px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: #0f172a;
+  min-height: 100vh;
+  color: white;
+  box-sizing: border-box;
+}
 
-        .badges-container h1 {
-          font-size: 36px;
-          margin-bottom: 32px;
-          text-align: center;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
+/* ================================
+   TITLE
+================================ */
+.badges-container h1 {
+  font-size: clamp(26px, 4vw, 38px);
+  margin-bottom: 32px;
+  text-align: center;
+  background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 
-        .stats-cards {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 20px;
-          margin-bottom: 32px;
-        }
+/* ================================
+   STATS CARDS
+================================ */
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
 
-        .stat-card {
-          background: white;
-          border-radius: 12px;
-          padding: 24px;
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
+.stat-card {
+  background: rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: clamp(18px, 2vw, 26px);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
 
-        .stat-icon {
-          font-size: 48px;
-        }
+.stat-icon {
+  font-size: clamp(36px, 4vw, 52px);
+}
 
-        .stat-value {
-          font-size: 32px;
-          font-weight: 800;
-          color: #667eea;
-        }
+.stat-value {
+  font-size: clamp(22px, 3.5vw, 36px);
+  font-weight: 900;
+  color: #38bdf8;
+}
 
-        .stat-label {
-          font-size: 14px;
-          color: #666;
-        }
+.stat-label {
+  font-size: clamp(13px, 2vw, 16px);
+  opacity: 0.6;
+}
 
-        .tabs {
-          display: flex;
-          gap: 8px;
-          margin-bottom: 24px;
-          border-bottom: 2px solid #e0e0e0;
-        }
+/* ================================
+   TABS
+================================ */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid rgba(255,255,255,0.1);
+  overflow-x: auto;
+}
 
-        .tab {
-          padding: 12px 24px;
-          border: none;
-          background: none;
-          font-size: 16px;
-          font-weight: 600;
-          color: #666;
-          cursor: pointer;
-          border-bottom: 3px solid transparent;
-          transition: all 0.3s;
-        }
+.tab {
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: clamp(14px, 2.5vw, 18px);
+  font-weight: 700;
+  white-space: nowrap;
+  color: #94a3b8;
+  border-bottom: 3px solid transparent;
+  transition: 0.25s;
+}
 
-        .tab.active {
-          color: #667eea;
-          border-bottom-color: #667eea;
-        }
+.tab.active {
+  color: #38bdf8;
+  border-bottom-color: #38bdf8;
+}
 
-        .tab:hover:not(.active) {
-          color: #333;
-        }
+/* ================================
+   BADGES GRID
+================================ */
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+  gap: clamp(16px, 3vw, 24px);
+  width: 100%;
+}
 
-        .badges-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-          gap: 20px;
-          margin-bottom: 32px;
-        }
+.badge-card {
+  background: #1e293b;
+  border-radius: 16px;
+  padding: clamp(18px, 3vw, 26px);
+  text-align: center;
+  border: 3px solid;
+  transition: 0.3s;
+  box-shadow: 0 0 20px rgba(0,0,0,0.4);
+}
 
-        .badge-card {
-          background: white;
-          border-radius: 12px;
-          padding: 24px;
-          text-align: center;
-          border: 3px solid;
-          transition: transform 0.3s;
-        }
+.badge-card:hover {
+  transform: translateY(-4px);
+}
 
-        .badge-card:hover {
-          transform: translateY(-4px);
-        }
+.badge-icon {
+  font-size: clamp(48px, 5vw, 72px);
+  margin-bottom: 12px;
+}
 
-        .badge-icon {
-          font-size: 64px;
-          margin-bottom: 12px;
-        }
+.badge-name {
+  font-size: clamp(18px, 3.5vw, 22px);
+  font-weight: 800;
+  margin-bottom: 8px;
+}
 
-        .badge-name {
-          font-size: 20px;
-          font-weight: 700;
-          margin-bottom: 8px;
-          color: #333;
-        }
+.badge-description {
+  font-size: clamp(13px, 2.5vw, 15px);
+  opacity: 0.7;
+  margin-bottom: 12px;
+}
 
-        .badge-description {
-          font-size: 14px;
-          color: #666;
-          margin-bottom: 12px;
-        }
+.badge-meta {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
 
-        .badge-meta {
-          display: flex;
-          justify-content: center;
-          gap: 12px;
-          margin-bottom: 8px;
-        }
+.badge-rarity {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: clamp(11px, 2vw, 13px);
+  font-weight: 700;
+}
 
-        .badge-rarity {
-          padding: 4px 12px;
-          border-radius: 12px;
-          font-size: 12px;
-          font-weight: 700;
-          color: white;
-          text-transform: uppercase;
-        }
+.badge-points {
+  padding: 4px 12px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 12px;
+  font-size: clamp(11px, 2vw, 13px);
+  color: #38bdf8;
+}
 
-        .badge-points {
-          padding: 4px 12px;
-          background: #f0f0f0;
-          border-radius: 12px;
-          font-size: 12px;
-          font-weight: 700;
-          color: #667eea;
-        }
+.badge-earned {
+  font-size: clamp(11px, 2vw, 13px);
+  opacity: 0.6;
+}
 
-        .badge-earned {
-          font-size: 12px;
-          color: #999;
-        }
+/* ================================
+   RARITY BREAKDOWN
+================================ */
+.rarity-breakdown {
+  background: #1e293b;
+  border-radius: 14px;
+  padding: clamp(20px, 3vw, 28px);
+  margin-top: 32px;
+}
 
-        .rarity-breakdown {
-          background: white;
-          border-radius: 12px;
-          padding: 24px;
-          box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
+.rarity-breakdown h3 {
+  font-size: clamp(18px, 3vw, 22px);
+  margin-bottom: 16px;
+}
 
-        .rarity-breakdown h3 {
-          margin-bottom: 16px;
-        }
+.rarity-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
 
-        .rarity-bars {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
+.rarity-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-        .rarity-bar-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
+.rarity-name {
+  width: clamp(80px, 18vw, 120px);
+  font-weight: 700;
+  text-transform: capitalize;
+  font-size: clamp(13px, 2.5vw, 15px);
+}
 
-        .rarity-name {
-          width: 100px;
-          font-weight: 600;
-          text-transform: capitalize;
-        }
+.rarity-bar-bg {
+  flex: 1;
+  height: 20px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  overflow: hidden;
+}
 
-        .rarity-bar-bg {
-          flex: 1;
-          height: 24px;
-          background: #f0f0f0;
-          border-radius: 12px;
-          overflow: hidden;
-        }
+.rarity-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
 
-        .rarity-bar-fill {
-          height: 100%;
-          transition: width 0.5s;
-        }
+.rarity-count {
+  width: clamp(30px, 8vw, 50px);
+  font-weight: 700;
+  text-align: right;
+  font-size: clamp(14px, 2.5vw, 18px);
+}
 
-        .rarity-count {
-          width: 40px;
-          text-align: right;
-          font-weight: 700;
-        }
+/* ================================
+   LEADERBOARD
+================================ */
+.leaderboard-table {
+  background: #1e293b;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
 
-        .leaderboard-table {
-          background: white;
-          border-radius: 12px;
-          overflow: hidden;
-          box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  padding: clamp(12px, 3vw, 20px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  gap: 16px;
+  flex-wrap: wrap;
+}
 
-        .leaderboard-row {
-          display: flex;
-          align-items: center;
-          padding: 20px;
-          border-bottom: 1px solid #f0f0f0;
-          transition: background 0.3s;
-        }
+.leaderboard-row:hover {
+  background: rgba(255,255,255,0.05);
+}
 
-        .leaderboard-row:hover {
-          background: #f8f9fa;
-        }
+.leaderboard-row.current-user {
+  background: rgba(56,189,248,0.2);
+  border-left: 4px solid #38bdf8;
+}
 
-        .leaderboard-row.current-user {
-          background: linear-gradient(90deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-          border-left: 4px solid #667eea;
-        }
+.rank {
+  width: clamp(46px, 10vw, 60px);
+  font-size: clamp(20px, 4vw, 28px);
+  font-weight: 900;
+  text-align: center;
+}
 
-        .rank {
-          width: 60px;
-          font-size: 24px;
-          font-weight: 800;
-          text-align: center;
-        }
+.user-info {
+  flex: 1;
+  min-width: 140px;
+}
 
-        .user-info {
-          flex: 1;
-        }
+.user-name {
+  font-size: clamp(16px, 3vw, 20px);
+  font-weight: 800;
+}
 
-        .user-name {
-          font-size: 18px;
-          font-weight: 700;
-          color: #333;
-        }
+.user-stats {
+  font-size: clamp(12px, 2.5vw, 14px);
+  opacity: 0.7;
+}
 
-        .user-stats {
-          font-size: 14px;
-          color: #666;
-        }
+.user-points {
+  text-align: right;
+  min-width: 80px;
+}
 
-        .user-points {
-          text-align: right;
-        }
+.points-value {
+  font-size: clamp(20px, 4vw, 28px);
+  font-weight: 900;
+  color: #38bdf8;
+}
 
-        .points-value {
-          font-size: 24px;
-          font-weight: 800;
-          color: #667eea;
-        }
+.points-label {
+  font-size: clamp(11px, 2vw, 13px);
+  opacity: 0.6;
+}
 
-        .points-label {
-          font-size: 12px;
-          color: #666;
-        }
+/* ================================
+   EMPTY STATE
+================================ */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: #1e293b;
+  border-radius: 14px;
+}
 
-        .empty-state {
-          text-align: center;
-          padding: 60px 20px;
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
+.empty-icon {
+  font-size: clamp(60px, 15vw, 100px);
+  margin-bottom: 16px;
+}
 
-        .empty-icon {
-          font-size: 80px;
-          margin-bottom: 16px;
-        }
+.empty-state h3 {
+  font-size: clamp(20px, 4vw, 28px);
+  margin-bottom: 8px;
+}
 
-        .empty-state h3 {
-          font-size: 24px;
-          margin-bottom: 8px;
-          color: #333;
-        }
+.empty-state p {
+  opacity: 0.7;
+  font-size: clamp(14px, 2.5vw, 16px);
+}
 
-        .empty-state p {
-          color: #666;
-        }
+/* ================================
+   LOADING
+================================ */
+.loading {
+  text-align: center;
+  padding: 60px;
+  font-size: clamp(18px, 3vw, 22px);
+  opacity: 0.7;
+}
+`
+}</style>
 
-        .loading {
-          text-align: center;
-          padding: 60px;
-          font-size: 18px;
-          color: #666;
-        }
-      `}</style>
+
     </div>
   );
 }

@@ -6,7 +6,7 @@ export default function AppHeader({ user, onLogout }) {
   return (
     <nav className="dashboard-nav">
       <div className="dashboard-nav-container">
-        <h1 className="dashboard-title">📖 Adaptive English</h1>
+        <h1 className="dashboard-title">📖 Adaptive Learner</h1>
         <div className="dashboard-nav-links">
           <button className="nav-link" onClick={() => navigate('/dashboard')}>Dashboard</button>
           <button className="nav-link" onClick={() => navigate('/learning-path')}>Learning Path</button>

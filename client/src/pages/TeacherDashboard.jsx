@@ -1,9 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Users, TrendingUp, Award, BookOpen, LogOut, User, Shield, RefreshCw, Download } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Users,
+  TrendingUp,
+  Award,
+  BookOpen,
+  LogOut,
+  User,
+  Shield,
+  RefreshCw,
+  Download
+} from "lucide-react";
 
+/* -----------------------------------------------------------------------------
+    Sidebar NavItem (Account.jsx ile birebir)
+----------------------------------------------------------------------------- */
+function NavItem({ icon, label, onClick, danger }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: "flex",
+        gap: 12,
+        alignItems: "center",
+        padding: "12px 14px",
+        borderRadius: 10,
+        background: danger
+          ? "rgba(239,68,68,0.15)"
+          : "rgba(255,255,255,0.08)",
+        color: danger ? "#fecaca" : "white",
+        border: "none",
+        cursor: "pointer",
+        fontWeight: 600
+      }}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+/* -----------------------------------------------------------------------------
+    Main Teacher Dashboard Component
+----------------------------------------------------------------------------- */
 export default function TeacherDashboard({ token, user, onLogout }) {
   const navigate = useNavigate();
+
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -11,16 +53,14 @@ export default function TeacherDashboard({ token, user, onLogout }) {
   const [stats, setStats] = useState(null);
   const [analyticsError, setAnalyticsError] = useState(null);
 
+  /* ---------------- LOAD ALL DATA ON START ---------------- */
   useEffect(() => {
     loadAllData();
   }, []);
 
   async function loadAllData() {
     setLoading(true);
-    await Promise.all([
-      loadStudents(),
-      loadAnalytics()
-    ]);
+    await Promise.all([loadStudents(), loadAnalytics()]);
     setLoading(false);
   }
 
@@ -32,256 +72,307 @@ export default function TeacherDashboard({ token, user, onLogout }) {
 
   async function loadStudents() {
     try {
-      const res = await fetch('http://localhost:4000/api/teacher/students', {
+      const res = await fetch("http://localhost:4000/api/teacher/students", {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
       setStudents(data);
     } catch (e) {
-      console.error('Failed to load students:', e);
+      console.error("Failed to load students:", e);
     }
   }
 
   async function loadAnalytics() {
     try {
-      const reportRes = await fetch('http://localhost:8000/api/reports/class/101');
+      const reportRes = await fetch(
+        "http://localhost:8000/api/reports/class/101"
+      );
       const reportData = await reportRes.json();
-      console.log(reportData);
       setReport(reportData);
 
-      const statsRes = await fetch('http://localhost:8000/api/reports/class/101/average');
+      const statsRes = await fetch(
+        "http://localhost:8000/api/reports/class/101/average"
+      );
       const statsData = await statsRes.json();
-      console.log(statsData);
       setStats(statsData);
-      
+
       setAnalyticsError(null);
     } catch (err) {
       console.error("Analytics fetch error:", err);
-      setAnalyticsError("Analytics service not available (optional)");
+      setAnalyticsError(
+        "Analytics service is currently unavailable (optional feature)"
+      );
     }
   }
 
-  async function exportPDF() {
+  async function exportCSV() {
     try {
-      // Get all student IDs
-      const studentIds = students.map(s => s._id);
-      
-      // Call the export endpoint
-      const response = await fetch('http://localhost:4000/api/reports/class/csv', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ studentIds })
-      });
+      const studentIds = students.map((s) => s._id);
+      const response = await fetch(
+        "http://localhost:4000/api/reports/class/csv",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ studentIds })
+        }
+      );
 
       if (response.ok) {
-        // Download the CSV fileab
         const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `class-report-${new Date().toISOString().split('T')[0]}.csv`;
+        a.download = `class-report-${new Date()
+          .toISOString()
+          .slice(0, 10)}.csv`;
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+        a.remove();
+        URL.revokeObjectURL(url);
       } else {
-        alert('Failed to export report');
+        alert("Failed to export CSV.");
       }
-    } catch (error) {
-      console.error('Export error:', error);
-      alert('Error exporting report');
+    } catch (e) {
+      alert("Error exporting CSV.");
     }
   }
 
+  /* ---------------- LOADING SCREEN ---------------- */
   if (loading) {
     return (
-      <div className="dashboard-container">
-        <div className="dashboard-main">
-          <div className="teacher-loading-container">
-            <div className="teacher-loading-text">
-              Loading teacher dashboard...
-            </div>
-          </div>
-        </div>
+      <div
+        style={{
+          background: "#0f172a",
+          color: "white",
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          fontSize: 24
+        }}
+      >
+        Loading Teacher Dashboard…
       </div>
     );
   }
 
+  /* ---------------- CALCULATE METRICS ---------------- */
   const totalStudents = students.length;
-  const avgTheta = students.reduce((sum, s) => sum + (s.theta || 0), 0) / totalStudents || 0;
-  const totalQuestions = students.reduce((sum, s) => sum + (s.stats?.totalQuestions || 0), 0);
+  const avgTheta =
+    students.reduce((sum, s) => sum + (s.theta || 0), 0) / totalStudents || 0;
+  const totalQuestions = students.reduce(
+    (sum, s) => sum + (s.stats?.totalQuestions || 0),
+    0
+  );
 
+  /* ---------------- MAIN UI ---------------- */
   return (
-    <div className="dashboard-container">
-      {/* Header */}
-      <header className="dashboard-header">
-        <div className="dashboard-header-content">
-          <div>
-            <h1>Teacher Dashboard</h1>
-            <p className="header-subtitle">Monitor student progress and performance</p>
-          </div>
-          <div className="teacher-header-actions">
-            <button 
-              className="logout-btn teacher-btn-refresh" 
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        background: "#0f172a",
+        color: "white"
+      }}
+    >
+      {/* ----------------------------------------------------------------------
+          SIDEBAR — ACCOUNT.JSX İLE AYNI
+      ---------------------------------------------------------------------- */}
+      <aside
+        style={{
+          width: 260,
+          padding: 30,
+          background: "rgba(255,255,255,0.05)",
+          backdropFilter: "blur(12px)",
+          display: "flex",
+          flexDirection: "column",
+          gap: 18
+        }}
+      >
+        <h2 style={{ fontSize: 22, fontWeight: 800 }}>Teacher Panel</h2>
+
+        <NavItem
+          icon={<BookOpen size={18} />}
+          label="Dashboard"
+          onClick={() => navigate("/dashboard")}
+        />
+
+        <NavItem
+          icon={<Users size={18} />}
+          label="Students"
+          onClick={() => {}}
+        />
+
+        <NavItem
+          icon={<TrendingUp size={18} />}
+          label="Performance"
+          onClick={() => {}}
+        />
+
+        <NavItem
+          icon={<User size={18} />}
+          label="Account"
+          onClick={() => navigate("/account")}
+        />
+
+        {user?.role === "admin" && (
+          <NavItem
+            icon={<Shield size={18} />}
+            label="Admin Panel"
+            onClick={() => navigate("/admin")}
+          />
+        )}
+
+        <div style={{ flex: 1 }} />
+
+        <NavItem
+          icon={<LogOut size={18} />}
+          label="Logout"
+          danger
+          onClick={onLogout}
+        />
+      </aside>
+
+      {/* ----------------------------------------------------------------------
+          MAIN CONTENT
+      ---------------------------------------------------------------------- */}
+      <main style={{ flex: 1, padding: 60, overflowY: "auto" }}>
+        {/* HEADER */}
+        <div style={{ marginBottom: 40 }}>
+          <h1 style={{ fontSize: 34, fontWeight: 900 }}>
+            Teacher Dashboard
+          </h1>
+          <p style={{ opacity: 0.6 }}>
+            Monitor class performance, ability scores and analytics
+          </p>
+
+          <div style={{ marginTop: 20, display: "flex", gap: 12 }}>
+            <button
               onClick={refreshData}
               disabled={refreshing}
-              title="Refresh all data"
+              style={btnPrimary}
             >
-              <RefreshCw size={20} className={refreshing ? 'spinning' : ''} />
+              <RefreshCw
+                size={18}
+                style={{ marginRight: 6, animation: refreshing ? "spin 1s linear infinite" : "none" }}
+              />
               Refresh
             </button>
-            <button 
-              className="logout-btn teacher-btn-export" 
-              onClick={exportPDF}
-              title="Download CSV Report (FR13)"
-            >
-              <Download size={20} />
+
+            <button onClick={exportCSV} style={btnGhost}>
+              <Download size={18} style={{ marginRight: 6 }} />
               Export CSV
-            </button>
-            <button 
-              className="logout-btn teacher-btn-dashboard" 
-              onClick={() => navigate('/dashboard')}
-            >
-              <BookOpen size={20} />
-              Dashboard
-            </button>
-            <button 
-              className="logout-btn teacher-btn-account" 
-              onClick={() => navigate('/account')}
-            >
-              <User size={20} />
-              Account
-            </button>
-            {user?.role === 'admin' && (
-              <button 
-                className="logout-btn teacher-btn-admin" 
-                onClick={() => navigate('/admin')}
-              >
-                <Shield size={20} />
-                Admin
-              </button>
-            )}
-            <button className="logout-btn" onClick={onLogout}>
-              <LogOut size={20} />
-              Logout
             </button>
           </div>
         </div>
-      </header>
 
-      <div className="teacher-dashboard-content">
-        <h2 className="teacher-header-title">
-          <Users size={36} color="#667eea" />
-          Student Overview
-        </h2>
-        <p className="teacher-header-subtitle">
-          Class performance metrics and individual progress tracking
-        </p>
-
-        {/* Stats Overview */}
-        <div className="teacher-stats-grid"
+        {/* STATS GRID */}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 20,
+            marginBottom: 40
+          }}
         >
-          <div className="teacher-stat-card teacher-stat-card-purple">
-            <div className="teacher-stat-header">
-              <Users size={24} />
-              <span className="teacher-stat-label">Total Students</span>
-            </div>
-            <div className="teacher-stat-value">{totalStudents}</div>
+          {/* CARD 1 */}
+          <div style={statCard("#6366f1")}>
+            <Users size={30} />
+            <div style={statValue}>{totalStudents}</div>
+            <div style={statLabel}>Total Students</div>
           </div>
 
-          <div className="teacher-stat-card teacher-stat-card-blue">
-            <div className="teacher-stat-header">
-              <TrendingUp size={24} />
-              <span className="teacher-stat-label">Avg Ability (θ)</span>
-            </div>
-            <div className="teacher-stat-value">{avgTheta.toFixed(2)}</div>
+          {/* CARD 2 */}
+          <div style={statCard("#38bdf8")}>
+            <TrendingUp size={30} />
+            <div style={statValue}>{avgTheta.toFixed(2)}</div>
+            <div style={statLabel}>Avg Ability (θ)</div>
           </div>
 
-          <div className="teacher-stat-card teacher-stat-card-pink">
-            <div className="teacher-stat-header">
-              <BookOpen size={24} />
-              <span className="teacher-stat-label">Total Questions</span>
-            </div>
-            <div className="teacher-stat-value">{totalQuestions}</div>
+          {/* CARD 3 */}
+          <div style={statCard("#f472b6")}>
+            <BookOpen size={30} />
+            <div style={statValue}>{totalQuestions}</div>
+            <div style={statLabel}>Total Questions</div>
           </div>
 
+          {/* CARD 4 */}
           {stats && (
-            <div className="teacher-stat-card teacher-stat-card-green">
-              <div className="teacher-stat-header">
-                <Award size={24} />
-                <span className="teacher-stat-label">Avg Retention</span>
-              </div>
-              <div className="teacher-stat-value">{stats.average_retention}%</div>
+            <div style={statCard("#4ade80")}>
+              <Award size={30} />
+              <div style={statValue}>{stats.average_retention}%</div>
+              <div style={statLabel}>Avg Retention</div>
             </div>
           )}
         </div>
 
-        {/* Students Table */}
-        <div className="teacher-students-table">
-          <h3 className="teacher-table-title">
-            Student Performance Details
-          </h3>
+        {/* STUDENTS TABLE */}
+        <div style={tableCard}>
+          <h2 style={{ marginBottom: 20 }}>Student Details</h2>
 
           {students.length === 0 ? (
-            <div className="teacher-empty-state">
-              No students found. Students will appear here once they register.
-            </div>
+            <p style={{ opacity: 0.6 }}>No students found.</p>
           ) : (
-            <div className="teacher-table-scroll">
-              <table className="teacher-table">
+            <div style={{ overflowX: "auto" }}>
+              <table style={tableStyle}>
                 <thead>
                   <tr>
                     <th>Username</th>
                     <th>Name</th>
-                    <th className="center">Ability (θ)</th>
-                    <th className="center">Questions</th>
-                    <th className="center">Accuracy</th>
-                    <th className="center">Status</th>
+                    <th>Ability (θ)</th>
+                    <th>Total Questions</th>
+                    <th>Accuracy</th>
+                    <th>Status</th>
                   </tr>
                 </thead>
+
                 <tbody>
-                  {students.map((student, idx) => {
-                    const accuracy = student.stats?.accuracy || 0;
-                    const isAtRisk = accuracy < 50 || student.theta < -1;
-                    
+                  {students.map((s) => {
+                    const accuracy = s.stats?.accuracy || 0;
+                    const risk = accuracy < 50 || s.theta < -1;
+
                     return (
-                      <tr key={student._id}>
-                        <td className="bold">
-                          {student.username}
-                        </td>
+                      <tr key={s._id}>
+                        <td style={bold}>{s.username}</td>
                         <td>
-                          {student.firstName && student.lastName 
-                            ? `${student.firstName} ${student.lastName}`
-                            : '-'}
+                          {s.firstName && s.lastName
+                            ? `${s.firstName} ${s.lastName}`
+                            : "-"}
                         </td>
-                        <td className="center">
-                          <span className="teacher-theta-badge">
-                            {student.theta?.toFixed(2) || '0.00'}
-                          </span>
-                        </td>
-                        <td className="center bold">
-                          {student.stats?.totalQuestions || 0}
-                        </td>
-                        <td className="center">
-                          <span className={
-                            accuracy >= 70 ? 'teacher-accuracy-high' :
-                            accuracy >= 50 ? 'teacher-accuracy-medium' : 'teacher-accuracy-low'
-                          }>
+                        <td style={center}>{s.theta?.toFixed(2)}</td>
+                        <td style={center}>{s.stats?.totalQuestions || 0}</td>
+                        <td style={center}>
+                          <span
+                            style={{
+                              padding: "4px 10px",
+                              borderRadius: 6,
+                              background:
+                                accuracy >= 70
+                                  ? "rgba(34,197,94,0.2)"
+                                  : accuracy >= 50
+                                  ? "rgba(234,179,8,0.2)"
+                                  : "rgba(239,68,68,0.2)",
+                              color:
+                                accuracy >= 70
+                                  ? "#4ade80"
+                                  : accuracy >= 50
+                                  ? "#facc15"
+                                  : "#f87171",
+                              fontWeight: 700
+                            }}
+                          >
                             {accuracy}%
                           </span>
                         </td>
-                        <td className="center">
-                          {isAtRisk ? (
-                            <span className="teacher-status-risk">
-                              ⚠️ AT RISK
-                            </span>
+
+                        <td style={center}>
+                          {risk ? (
+                            <span style={riskBadge}>⚠️ AT RISK</span>
                           ) : (
-                            <span className="teacher-status-good">
-                              ✓ ON TRACK
-                            </span>
+                            <span style={okBadge}>✓ On Track</span>
                           )}
                         </td>
                       </tr>
@@ -293,45 +384,55 @@ export default function TeacherDashboard({ token, user, onLogout }) {
           )}
         </div>
 
-        {/* Advanced Analytics Section */}
-        {report && report.data && report.data.length > 0 && (
-          <div className="teacher-analytics-section">
-            <h3 className="teacher-analytics-title">
-              📊 Advanced Analytics (from Analytics Service)
-            </h3>
-            
-            <div className="teacher-table-scroll">
-              <table className="teacher-analytics-table">
+        {/* ANALYTICS TABLE */}
+        {report?.data?.length > 0 && (
+          <div style={{ ...tableCard, marginTop: 40 }}>
+            <h2 style={{ marginBottom: 20 }}>Advanced Analytics</h2>
+
+            <div style={{ overflowX: "auto" }}>
+              <table style={tableStyle}>
                 <thead>
                   <tr>
                     <th>Name</th>
                     <th>Level</th>
-                    <th>Retention Score</th>
-                    <th>Risk Status</th>
+                    <th>Retention</th>
+                    <th>Risk</th>
                   </tr>
                 </thead>
+
                 <tbody>
-                  {report.data.map((student) => (
-                    <tr key={student.id}>
-                      <td><strong>{student.name}</strong></td>
-                      <td>{student.level}</td>
+                  {report.data.map((r) => (
+                    <tr key={r.id}>
+                      <td style={bold}>{r.name}</td>
+                      <td>{r.level}</td>
                       <td>
-                        <span className={
-                          student.retention >= 70 ? 'teacher-retention-high' :
-                          student.retention >= 50 ? 'teacher-retention-medium' : 'teacher-retention-low'
-                        }>
-                          {student.retention}%
+                        <span
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: 6,
+                            background:
+                              r.retention >= 70
+                                ? "rgba(34,197,94,0.2)"
+                                : r.retention >= 50
+                                ? "rgba(234,179,8,0.2)"
+                                : "rgba(239,68,68,0.2)",
+                            color:
+                              r.retention >= 70
+                                ? "#4ade80"
+                                : r.retention >= 50
+                                ? "#facc15"
+                                : "#f87171",
+                            fontWeight: 700
+                          }}
+                        >
+                          {r.retention}%
                         </span>
                       </td>
                       <td>
-                        {student.risk ? (
-                          <span className="teacher-status-risk">
-                            ⚠️ AT RISK
-                          </span>
+                        {r.risk ? (
+                          <span style={riskBadge}>⚠️ AT RISK</span>
                         ) : (
-                          <span className="teacher-status-good">
-                            ✓ ON TRACK
-                          </span>
+                          <span style={okBadge}>✓ On Track</span>
                         )}
                       </td>
                     </tr>
@@ -339,17 +440,89 @@ export default function TeacherDashboard({ token, user, onLogout }) {
                 </tbody>
               </table>
             </div>
-          </div>
-        )}
 
-        {/* Analytics Error/Info Message */}
-        {analyticsError && (
-          <div className="teacher-analytics-error">
-            <span style={{ fontSize: '20px' }}>ℹ️</span>
-            <span>{analyticsError} - Running on port 8000 (optional service)</span>
+            {analyticsError && (
+              <p style={{ opacity: 0.6, marginTop: 10 }}>{analyticsError}</p>
+            )}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }
+
+/* -----------------------------------------------------------------------------
+    SHARED STYLES
+----------------------------------------------------------------------------- */
+
+const btnPrimary = {
+  display: "flex",
+  alignItems: "center",
+  gap: 8,
+  padding: "12px 20px",
+  borderRadius: 10,
+  border: "none",
+  background: "#6366f1",
+  color: "white",
+  fontWeight: 700,
+  cursor: "pointer"
+};
+
+const btnGhost = {
+  ...btnPrimary,
+  background: "rgba(255,255,255,0.1)"
+};
+
+const statCard = (color) => ({
+  width: 220,
+  padding: 24,
+  borderRadius: 20,
+  background: "#020617",
+  boxShadow: "0 40px 120px rgba(0,0,0,0.4)",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 8,
+  border: `1px solid ${color}30`
+});
+
+const statValue = {
+  fontSize: 32,
+  fontWeight: 900
+};
+
+const statLabel = {
+  opacity: 0.6
+};
+
+const tableCard = {
+  background: "#020617",
+  padding: 40,
+  borderRadius: 20,
+  boxShadow: "0 40px 120px rgba(0,0,0,0.5)"
+};
+
+const tableStyle = {
+  width: "100%",
+  borderCollapse: "collapse",
+  color: "white"
+};
+
+const center = { textAlign: "center" };
+const bold = { fontWeight: 700 };
+
+const riskBadge = {
+  padding: "4px 10px",
+  borderRadius: 6,
+  background: "rgba(239,68,68,0.2)",
+  color: "#f87171",
+  fontWeight: 800
+};
+
+const okBadge = {
+  padding: "4px 10px",
+  borderRadius: 6,
+  background: "rgba(34,197,94,0.2)",
+  color: "#4ade80",
+  fontWeight: 800
+};

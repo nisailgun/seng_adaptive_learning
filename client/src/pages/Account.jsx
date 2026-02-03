@@ -96,22 +96,6 @@ export default function Account({ token, user, onLogout }) {
           onClick={() => navigate('/dashboard')}
         />
 
-        {(user?.role === 'teacher' || user?.role === 'admin') && (
-          <NavItem
-            icon={<Users size={18} />}
-            label="Teacher"
-            onClick={() => navigate('/teacher')}
-          />
-        )}
-
-        {user?.role === 'admin' && (
-          <NavItem
-            icon={<Shield size={18} />}
-            label="Admin"
-            onClick={() => navigate('/admin')}
-          />
-        )}
-
         <div style={{ flex: 1 }} />
 
         <NavItem

@@ -5,6 +5,8 @@
 
 import dotenv from 'dotenv';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import ResponseModel from '../models/response.js';
+
 
 dotenv.config();
 const API_KEY = process.env.GEMINI_API_KEY;
@@ -340,6 +342,32 @@ Return:
       return 'Writing review unavailable.';
     }
   }
+  async analyzeWrongResponses(userId) {
+  try {
+    const wrongResponses = await ResponseModel.find({ user: userId, correct: false })
+      .sort({ timestamp: -1 })
+      .limit(20)
+      .populate("question")
+      .lean();
+
+    if (wrongResponses.length === 0) {
+      return "You currently have no incorrect responses to analyze!";
+    }
+
+    const prompt = `
+      Analyze the following mistakes made by the student:
+      ${JSON.stringify(wrongResponses, null, 2)}
+      
+      Summarize the student's weaknesses, patterns, and learning suggestions.
+    `;
+
+    const result = await this._generate(prompt);
+    return extractAIText(result) || "Error while analyzing student mistakes.";
+  } catch (e) {
+    return "Error while analyzing student mistakes.";
+  }
+}
+
 }
 
 // --------------------------------------------------

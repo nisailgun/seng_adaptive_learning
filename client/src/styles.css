@@ -28,7 +28,7 @@ body {
   --border-color: #ddd;
   --bg-light: #f8f9fa;
   --bg-white: white;
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+  --shadow-sm: 0 2px 4px rgba(177, 68, 68, 0.1);
   --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
   --shadow-lg: 0 8px 15px rgba(0,0,0,0.15);
   --radius-sm: 4px;

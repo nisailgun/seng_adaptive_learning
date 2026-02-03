@@ -1696,6 +1696,35 @@ function normalizeAI(text) {
     content: typeof text === 'string' ? text : JSON.stringify(text)
   };
 }
+
+// AI: Analyze user's wrong responses (Gemini powered)
+app.get('/api/ai/wrong-responses-analysis', async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'No token' });
+
+  try {
+    // Decode JWT
+    const { userId } = jwt.verify(token, JWT_SECRET);
+    if (!userId) return res.status(401).json({ error: 'Invalid token' });
+
+    // Ensure user exists
+    const user = await UserModel.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Call our new AI service method
+    const analysisText = await aiService.analyzeWrongResponses(userId);
+
+    res.json({
+      success: true,
+      analysis: analysisText
+    });
+
+  } catch (err) {
+    console.error('❌ Wrong response analysis failed:', err);
+    res.status(500).json({ error: 'AI wrong-response analysis failed', details: err.message });
+  }
+});
+
 // Get AI-powered explanation for a concept
 app.post('/api/ai/explain', async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];

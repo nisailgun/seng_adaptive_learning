@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { generateInitialPath } from '../api';
-import { BookOpen, Sparkles, Target, TrendingUp } from 'lucide-react';
+import { Sparkles, BookOpen, Target, TrendingUp } from 'lucide-react';
 
 export default function InitialPathGenerator({ token, onComplete }) {
   const [step, setStep] = useState(1);
@@ -12,15 +12,17 @@ export default function InitialPathGenerator({ token, onComplete }) {
     speaking: 50
   });
   const [hasExternalScores, setHasExternalScores] = useState(false);
-  const [selectedSkills, setSelectedSkills] = useState(['reading', 'writing', 'listening', 'speaking']);
+  const [selectedSkills, setSelectedSkills] = useState([
+    'reading', 'writing', 'listening', 'speaking'
+  ]);
 
   const handleScoreChange = (skill, value) => {
     setExternalScores(prev => ({ ...prev, [skill]: parseInt(value) || 0 }));
   };
 
   const toggleSkill = (skill) => {
-    setSelectedSkills(prev => 
-      prev.includes(skill) 
+    setSelectedSkills(prev =>
+      prev.includes(skill)
         ? prev.filter(s => s !== skill)
         : [...prev, skill]
     );
@@ -31,13 +33,11 @@ export default function InitialPathGenerator({ token, onComplete }) {
     try {
       const options = {
         targetSkills: selectedSkills,
-        externalScores: hasExternalScores ? externalScores : null
+        externalScores: hasExternalScores ? externalScores : null,
       };
-      
       const path = await generateInitialPath(token, options);
       onComplete(path);
-    } catch (e) {
-      console.error('Failed to generate path:', e);
+    } catch (err) {
       alert('Failed to generate learning path. Please try again.');
     } finally {
       setLoading(false);
@@ -46,408 +46,351 @@ export default function InitialPathGenerator({ token, onComplete }) {
 
   return (
     <div style={{
-      maxWidth: '800px',
+      padding: '40px',
+      maxWidth: 900,
       margin: '0 auto',
-      padding: '40px 20px'
+      minHeight: '100vh',
+      color: 'white',
+      background: '#0f172a'
     }}>
-      {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+
+      {/* HEADER */}
+      <div style={{ textAlign: 'center', marginBottom: 50 }}>
         <div style={{
-          display: 'inline-flex',
+          width: 80,
+          height: 80,
+          borderRadius: '50%',
+          display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          width: '80px',
-          height: '80px',
-          borderRadius: '50%',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          marginBottom: '20px'
+          margin: '0 auto 20px',
+          background: 'linear-gradient(135deg,#6366f1,#22d3ee)'
         }}>
-          <Sparkles size={40} color="white" />
+          <Sparkles size={40} color="#020617" />
         </div>
+
         <h1 style={{
-          fontSize: '32px',
-          fontWeight: '700',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          fontSize: 34,
+          fontWeight: 900,
+          marginBottom: 10,
+          background: 'linear-gradient(135deg,#6366f1,#22d3ee)',
           WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          marginBottom: '12px'
+          WebkitTextFillColor: 'transparent'
         }}>
-          Let's Create Your Learning Path
+          Create Your Learning Path
         </h1>
-        <p style={{ color: '#666', fontSize: '18px' }}>
-          We'll personalize your experience based on your current level and goals
+
+        <p style={{ opacity: 0.6, fontSize: 18 }}>
+          Personalized learning journey tailored to your goals
         </p>
       </div>
 
-      {/* Progress Indicator */}
+      {/* PROGRESS */}
       <div style={{
         display: 'flex',
         justifyContent: 'center',
-        gap: '12px',
-        marginBottom: '40px'
+        gap: 12,
+        marginBottom: 40
       }}>
         {[1, 2, 3].map(num => (
-          <div key={num} style={{
-            width: '40px',
-            height: '4px',
-            borderRadius: '2px',
-            background: step >= num ? '#667eea' : '#e0e0e0',
-            transition: 'all 0.3s ease'
-          }} />
+          <div key={num}
+            style={{
+              width: 50,
+              height: 4,
+              borderRadius: 2,
+              background: step >= num ? '#6366f1' : 'rgba(255,255,255,0.1)',
+              transition: '0.3s'
+            }}
+          />
         ))}
       </div>
 
-      {/* Step 1: Welcome & Intro */}
-      {step === 1 && (
-        <div style={{
-          background: 'white',
-          padding: '40px',
-          borderRadius: '16px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
-        }}>
-          <h2 style={{ marginBottom: '24px', color: '#1a1a1a' }}>
-            Welcome to Adaptive AI Learn! 🎓
-          </h2>
-          <p style={{ color: '#666', lineHeight: '1.8', marginBottom: '24px' }}>
-            Our AI-powered platform creates a personalized learning journey just for you. 
-            We use adaptive algorithms to match content to your skill level and adjust 
-            as you progress.
-          </p>
-          
-          <div style={{ display: 'grid', gap: '16px', marginBottom: '32px' }}>
-            {[
-              { icon: Target, title: 'Personalized Path', desc: 'Content matched to your level' },
-              { icon: TrendingUp, title: 'Adaptive Learning', desc: 'Difficulty adjusts with progress' },
-              { icon: BookOpen, title: 'Four Skills', desc: 'Reading, Writing, Listening, Speaking' }
-            ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} style={{
-                display: 'flex',
-                gap: '16px',
-                padding: '16px',
-                background: '#f9fafb',
-                borderRadius: '12px'
-              }}>
-                <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      {/* CARD CONTAINER */}
+      <div style={{
+        background: '#020617',
+        padding: 40,
+        borderRadius: 20,
+        boxShadow: '0 40px 120px rgba(0,0,0,0.5)'
+      }}>
+        
+        {/* STEP 1 */}
+        {step === 1 && (
+          <>
+            <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 20 }}>
+              Welcome to Adaptive AI Learn
+            </h2>
+            <p style={{ opacity: 0.6, lineHeight: 1.6, marginBottom: 30 }}>
+              Our AI-powered system dynamically builds your learning path based on your skill level and progress.
+            </p>
+
+            {/* FEATURES */}
+            <div style={{ display: 'grid', gap: 20, marginBottom: 40 }}>
+              {[
+                { icon: Target, title: 'Personalized Path', desc: 'Content adapted to your level' },
+                { icon: TrendingUp, title: 'Adaptive Learning', desc: 'Difficulty adjusts as you grow' },
+                { icon: BookOpen, title: 'Four Skills', desc: 'Reading, Writing, Listening, Speaking' }
+              ].map(({ icon: Icon, title, desc }) => (
+                <div key={title} style={{
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
+                  padding: 18,
+                  borderRadius: 14,
+                  background: 'rgba(255,255,255,0.05)',
+                  backdropFilter: 'blur(12px)',
+                  gap: 16
                 }}>
-                  <Icon size={24} color="white" />
-                </div>
-                <div>
-                  <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px', color: '#1a1a1a' }}>
-                    {title}
-                  </h3>
-                  <p style={{ fontSize: '14px', color: '#666', margin: 0 }}>{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <button
-            onClick={() => setStep(2)}
-            style={{
-              width: '100%',
-              padding: '16px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '12px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'transform 0.2s ease'
-            }}
-            onMouseOver={(e) => e.target.style.transform = 'scale(1.02)'}
-            onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
-          >
-            Get Started →
-          </button>
-        </div>
-      )}
-
-      {/* Step 2: Skill Selection & Diagnostic */}
-      {step === 2 && (
-        <div style={{
-          background: 'white',
-          padding: '40px',
-          borderRadius: '16px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
-        }}>
-          <h2 style={{ marginBottom: '12px', color: '#1a1a1a' }}>
-            Which skills would you like to improve?
-          </h2>
-          <p style={{ color: '#666', marginBottom: '24px' }}>
-            Select all that apply. We'll create a balanced learning path.
-          </p>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '32px' }}>
-            {[
-              { skill: 'reading', label: 'Reading', emoji: '📖' },
-              { skill: 'writing', label: 'Writing', emoji: '✍️' },
-              { skill: 'listening', label: 'Listening', emoji: '👂' },
-              { skill: 'speaking', label: 'Speaking', emoji: '🗣️' }
-            ].map(({ skill, label, emoji }) => (
-              <button
-                key={skill}
-                onClick={() => toggleSkill(skill)}
-                style={{
-                  padding: '20px',
-                  background: selectedSkills.includes(skill) 
-                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                    : '#f9fafb',
-                  color: selectedSkills.includes(skill) ? 'white' : '#1a1a1a',
-                  border: selectedSkills.includes(skill) ? 'none' : '2px solid #e0e0e0',
-                  borderRadius: '12px',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px'
-                }}
-              >
-                <span style={{ fontSize: '24px' }}>{emoji}</span>
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <div style={{
-            padding: '20px',
-            background: '#f0f4ff',
-            borderRadius: '12px',
-            marginBottom: '24px'
-          }}>
-            <label style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              cursor: 'pointer',
-              fontSize: '15px',
-              color: '#1a1a1a',
-              fontWeight: '500'
-            }}>
-              <input
-                type="checkbox"
-                checked={hasExternalScores}
-                onChange={(e) => setHasExternalScores(e.target.checked)}
-                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-              />
-              I have previous test scores to help calibrate my starting level
-            </label>
-          </div>
-
-          {hasExternalScores && (
-            <div style={{
-              padding: '24px',
-              background: '#f9fafb',
-              borderRadius: '12px',
-              marginBottom: '24px'
-            }}>
-              <h3 style={{ fontSize: '16px', marginBottom: '16px', color: '#1a1a1a' }}>
-                Enter your scores (0-100)
-              </h3>
-              {['reading', 'writing', 'listening', 'speaking'].map(skill => (
-                <div key={skill} style={{ marginBottom: '16px' }}>
-                  <label style={{
-                    display: 'block',
-                    marginBottom: '8px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    color: '#666',
-                    textTransform: 'capitalize'
-                  }}>
-                    {skill}
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={externalScores[skill]}
-                    onChange={(e) => handleScoreChange(skill, e.target.value)}
-                    style={{ width: '100%' }}
-                  />
                   <div style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background: 'linear-gradient(135deg,#6366f1,#22d3ee)',
                     display: 'flex',
-                    justifyContent: 'space-between',
-                    marginTop: '4px'
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}>
-                    <span style={{ fontSize: '12px', color: '#999' }}>Beginner</span>
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: '#667eea' }}>
-                      {externalScores[skill]}
-                    </span>
-                    <span style={{ fontSize: '12px', color: '#999' }}>Advanced</span>
+                    <Icon size={24} color="#020617" />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 700 }}>{title}</h3>
+                    <p style={{ opacity: 0.6, fontSize: 14 }}>{desc}</p>
                   </div>
                 </div>
               ))}
             </div>
-          )}
 
-          <div style={{ display: 'flex', gap: '12px' }}>
             <button
-              onClick={() => setStep(1)}
-              style={{
-                flex: 1,
-                padding: '16px',
-                background: '#f9fafb',
-                color: '#666',
-                border: '2px solid #e0e0e0',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
+              onClick={() => setStep(2)}
+              style={btnPrimary}
             >
-              ← Back
+              Get Started →
             </button>
-            <button
-              onClick={() => setStep(3)}
-              disabled={selectedSkills.length === 0}
-              style={{
-                flex: 2,
-                padding: '16px',
-                background: selectedSkills.length > 0 
-                  ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                  : '#e0e0e0',
-                color: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: selectedSkills.length > 0 ? 'pointer' : 'not-allowed',
-                transition: 'transform 0.2s ease'
-              }}
-              onMouseOver={(e) => {
-                if (selectedSkills.length > 0) e.target.style.transform = 'scale(1.02)';
-              }}
-              onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
-            >
-              Continue →
-            </button>
-          </div>
-        </div>
-      )}
+          </>
+        )}
 
-      {/* Step 3: Confirmation & Generate */}
-      {step === 3 && (
-        <div style={{
-          background: 'white',
-          padding: '40px',
-          borderRadius: '16px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
-        }}>
-          <h2 style={{ marginBottom: '12px', color: '#1a1a1a' }}>
-            Ready to create your path! 🚀
-          </h2>
-          <p style={{ color: '#666', marginBottom: '32px' }}>
-            We'll generate a personalized learning journey based on your selections.
-          </p>
+        {/* STEP 2 */}
+        {step === 2 && (
+          <>
+            <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 10 }}>
+              Select Skills to Improve
+            </h2>
+            <p style={{ opacity: 0.6, marginBottom: 30 }}>
+              Choose all skills you want to focus on.
+            </p>
 
-          <div style={{
-            padding: '24px',
-            background: '#f9fafb',
-            borderRadius: '12px',
-            marginBottom: '24px'
-          }}>
-            <h3 style={{ fontSize: '14px', fontWeight: '600', color: '#999', marginBottom: '12px' }}>
-              YOUR SELECTIONS
-            </h3>
-            <div style={{ marginBottom: '16px' }}>
-              <strong style={{ color: '#1a1a1a' }}>Focus Skills:</strong>
-              <div style={{ marginTop: '8px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {/* SKILL BUTTONS */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 14,
+              marginBottom: 30
+            }}>
+              {[
+                { skill: 'reading', label: 'Reading', emoji: '📖' },
+                { skill: 'writing', label: 'Writing', emoji: '✍️' },
+                { skill: 'listening', label: 'Listening', emoji: '👂' },
+                { skill: 'speaking', label: 'Speaking', emoji: '🗣️' }
+              ].map(({ skill, label, emoji }) => (
+                <button
+                  key={skill}
+                  onClick={() => toggleSkill(skill)}
+                  style={{
+                    padding: 20,
+                    borderRadius: 12,
+                    border: 'none',
+                    cursor: 'pointer',
+                    background: selectedSkills.includes(skill)
+                      ? 'linear-gradient(135deg,#6366f1,#22d3ee)'
+                      : 'rgba(255,255,255,0.05)',
+                    color: selectedSkills.includes(skill)
+                      ? '#020617'
+                      : 'white',
+                    display: 'flex',
+                    gap: 12,
+                    alignItems: 'center',
+                    fontWeight: 700
+                  }}
+                >
+                  <span style={{ fontSize: 24 }}>{emoji}</span>
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* EXTERNAL SCORES SWITCH */}
+            <div style={{
+              padding: 20,
+              borderRadius: 14,
+              background: 'rgba(255,255,255,0.05)',
+              marginBottom: 20
+            }}>
+              <label style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <input
+                  type="checkbox"
+                  checked={hasExternalScores}
+                  onChange={(e) => setHasExternalScores(e.target.checked)}
+                />
+                Use previous test scores for calibration
+              </label>
+            </div>
+
+            {/* SCORE SECTION */}
+            {hasExternalScores && (
+              <div style={{
+                padding: 20,
+                borderRadius: 14,
+                background: 'rgba(255,255,255,0.05)',
+                marginBottom: 30
+              }}>
+                <h3 style={{ marginBottom: 20 }}>Enter Scores (0 - 100)</h3>
+                {Object.keys(externalScores).map(skill => (
+                  <div key={skill} style={{ marginBottom: 18 }}>
+                    <label style={{ textTransform: 'capitalize', opacity: 0.7 }}>
+                      {skill}
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={externalScores[skill]}
+                      onChange={(e) => handleScoreChange(skill, e.target.value)}
+                      style={{ width: '100%' }}
+                    />
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: 12,
+                      opacity: 0.6
+                    }}>
+                      <span>Beginner</span>
+                      <span style={{ color: '#6366f1', fontWeight: 800 }}>
+                        {externalScores[skill]}
+                      </span>
+                      <span>Advanced</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button onClick={() => setStep(1)} style={btnGhost}>← Back</button>
+              <button
+                onClick={() => setStep(3)}
+                disabled={selectedSkills.length === 0}
+                style={{
+                  ...btnPrimary,
+                  opacity: selectedSkills.length > 0 ? 1 : 0.4,
+                  cursor: selectedSkills.length > 0 ? 'pointer' : 'not-allowed'
+                }}
+              >
+                Continue →
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* STEP 3 */}
+        {step === 3 && (
+          <>
+            <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 20 }}>
+              Ready to Generate Your Path!
+            </h2>
+            <p style={{ opacity: 0.6, marginBottom: 30 }}>
+              Review your selections before continuing.
+            </p>
+
+            {/* SUMMARY CARD */}
+            <div style={{
+              padding: 24,
+              borderRadius: 16,
+              background: 'rgba(255,255,255,0.05)',
+              marginBottom: 30
+            }}>
+              <h3 style={{ opacity: 0.7, marginBottom: 10 }}>Selected Skills:</h3>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {selectedSkills.map(skill => (
                   <span key={skill} style={{
-                    padding: '6px 12px',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: 'white',
-                    borderRadius: '20px',
-                    fontSize: '13px',
-                    fontWeight: '500',
+                    padding: '6px 14px',
+                    background: 'linear-gradient(135deg,#6366f1,#22d3ee)',
+                    borderRadius: 20,
+                    color: '#020617',
+                    fontWeight: 700,
                     textTransform: 'capitalize'
                   }}>
                     {skill}
                   </span>
                 ))}
               </div>
-            </div>
-            {hasExternalScores && (
-              <div>
-                <strong style={{ color: '#1a1a1a' }}>Diagnostic Scores:</strong>
-                <div style={{
-                  marginTop: '8px',
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '8px'
-                }}>
-                  {Object.entries(externalScores).map(([skill, score]) => (
-                    <div key={skill} style={{
-                      padding: '8px 12px',
-                      background: 'white',
-                      borderRadius: '8px',
-                      fontSize: '13px'
-                    }}>
-                      <span style={{ textTransform: 'capitalize', color: '#666' }}>{skill}:</span>
-                      <strong style={{ marginLeft: '8px', color: '#667eea' }}>{score}</strong>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button
-              onClick={() => setStep(2)}
-              disabled={loading}
-              style={{
-                flex: 1,
-                padding: '16px',
-                background: '#f9fafb',
-                color: '#666',
-                border: '2px solid #e0e0e0',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.5 : 1
-              }}
-            >
-              ← Back
-            </button>
-            <button
-              onClick={handleGenerate}
-              disabled={loading}
-              style={{
-                flex: 2,
-                padding: '16px',
-                background: loading 
-                  ? '#e0e0e0'
-                  : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                transition: 'transform 0.2s ease'
-              }}
-              onMouseOver={(e) => {
-                if (!loading) e.target.style.transform = 'scale(1.02)';
-              }}
-              onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
-            >
-              {loading ? 'Generating Your Path...' : 'Generate My Learning Path ✨'}
-            </button>
-          </div>
-        </div>
-      )}
+              {hasExternalScores && (
+                <>
+                  <h3 style={{ opacity: 0.7, margin: '20px 0 10px' }}>Scores:</h3>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: 10
+                  }}>
+                    {Object.entries(externalScores).map(([skill, val]) => (
+                      <div key={skill}
+                        style={{
+                          padding: 12,
+                          borderRadius: 12,
+                          background: 'rgba(255,255,255,0.08)'
+                        }}
+                      >
+                        <span style={{ textTransform: 'capitalize', opacity: 0.6 }}>
+                          {skill}:
+                        </span>
+                        <strong style={{ marginLeft: 8, color: '#6366f1' }}>
+                          {val}
+                        </strong>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* BUTTONS */}
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button onClick={() => setStep(2)} style={btnGhost}>← Back</button>
+              <button
+                onClick={handleGenerate}
+                disabled={loading}
+                style={{
+                  ...btnPrimary,
+                  opacity: loading ? 0.4 : 1,
+                  cursor: loading ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {loading ? "Generating..." : "Generate Path ✨"}
+              </button>
+            </div>
+          </>
+        )}
+
+      </div>
+
     </div>
   );
 }
+
+/* === BUTTON STYLES (Account.jsx ile uyumlu) === */
+
+const btnPrimary = {
+  padding: '14px 22px',
+  border: 'none',
+  borderRadius: 10,
+  background: '#6366f1',
+  color: 'white',
+  fontWeight: 800,
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 8,
+};
+
+const btnGhost = {
+  ...btnPrimary,
+  background: 'rgba(255,255,255,0.1)',
+};

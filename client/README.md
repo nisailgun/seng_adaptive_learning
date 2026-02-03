@@ -1,4 +1,4 @@
-# Adaptive English — Client
+# Adaptive Learner — Client
 
 This is a minimal Vite + React (JSX) client for the adaptive learning server.
 

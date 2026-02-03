@@ -16,12 +16,12 @@ export default function Register({ onLogin }) {
     e.preventDefault();
     
     if (password !== confirmPassword) {
-      setMsg('Passwords do not match');
+      setMsg('Passwords don’t match. Please check again.');
       return;
     }
 
     if (password.length < 6) {
-      setMsg('Password must be at least 6 characters');
+      setMsg('Password must be at least 6 characters long.');
       return;
     }
 
@@ -29,8 +29,8 @@ export default function Register({ onLogin }) {
     try {
       const res = await register(username, password);
       setSuccess(true);
-      setMsg('✨ Account created successfully!');
-      // Auto-login after successful registration
+      setMsg('Account created successfully! 🎉');
+
       if (res.token && res.user) {
         onLogin(res.token, res.user);
         setTimeout(() => navigate('/dashboard'), 1500);
@@ -38,7 +38,7 @@ export default function Register({ onLogin }) {
         setTimeout(() => navigate('/login'), 2500);
       }
     } catch(e) {
-      setMsg(e.response?.data?.error || 'Registration failed');
+      setMsg(e.response?.data?.error || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -49,14 +49,16 @@ export default function Register({ onLogin }) {
       <div className="auth-background">
         <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=800&q=80" alt="background" />
       </div>
+
       <form onSubmit={submit} className="auth-card">
         <button type="button" className="back-button" onClick={() => navigate('/')}>
           <ChevronLeft size={20} />
-          Back
+          Back to Home
         </button>
+
         <div className="auth-header">
-          <h2>Create Account</h2>
-          <p>Start your learning adventure today</p>
+          <h2>Create Your Account</h2>
+          <p>Start your personalized learning journey</p>
         </div>
         
         {success && <div className="success-alert"><CheckCircle size={20} /> {msg}</div>}
@@ -81,7 +83,7 @@ export default function Register({ onLogin }) {
           <div className="input-wrapper">
             <input 
               type="password"
-              placeholder="Create a strong password" 
+              placeholder="Create a secure password" 
               value={password} 
               onChange={e=>setPassword(e.target.value)}
               required
@@ -95,7 +97,7 @@ export default function Register({ onLogin }) {
           <div className="input-wrapper">
             <input 
               type="password"
-              placeholder="Confirm your password" 
+              placeholder="Re-enter your password" 
               value={confirmPassword} 
               onChange={e=>setConfirmPassword(e.target.value)}
               required
@@ -104,7 +106,7 @@ export default function Register({ onLogin }) {
         </div>
 
         <button type="submit" className="auth-button" disabled={loading}>
-          {loading ? 'Creating account...' : 'Create Account'}
+          {loading ? 'Creating your account...' : 'Create My Account'}
           {!loading && <ArrowRight size={20} />}
         </button>
 
